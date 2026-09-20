@@ -1,0 +1,80 @@
+# Root .gitignore covering both backend (Python/Django) and UI (Next.js/Node)
+
+# ====================
+# General
+# ====================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+
+# ====================
+# Python / Django backend
+# ====================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+*.egg-info/
+.dist/
+
+# Virtual environments
+venv/
+.env/
+ENV/
+env/
+.venv/
+
+# Django specific
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+
+# Media uploads (if any) - adjust as needed
+media/
+staticfiles/
+
+# Environment variables
+.env*
+
+# ====================
+# Node / Next.js UI
+# ====================
+node_modules/
+.next/
+out/
+build/
+.vercel/
+
+# Yarn / pnpm / npm debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Yarn Berry files
+.pnp*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Coverage reports
+coverage/
+
+# IDE / Editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Misc
+*.pem
