@@ -3,6 +3,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
 import {
     Mail,
     Lock,
@@ -29,6 +31,8 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [loginSuccess, setLoginSuccess] = useState(false);
+    const router = useRouter();
+    const authStore = useAuthStore();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -47,7 +51,7 @@ export default function LoginPage() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         setErrorMessage("");
@@ -58,8 +62,12 @@ export default function LoginPage() {
             return;
         }
 
-        // UI only — no API call
-        setLoginSuccess(true);
+        const result = await authStore.login(formData.email, formData.password);
+        if (result.success) {
+            router.push("/admin/dashboard");
+        } else {
+            setErrorMessage(result.error || "Login failed");
+        }
     };
 
     return (

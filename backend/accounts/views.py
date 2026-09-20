@@ -75,7 +75,31 @@ async def logout_view(request):
     return response
 
 
-# def _rotate(raw):
+def _rotate(raw):
+    ser = TokenRefreshSerializer(data={"refresh": raw})
+    ser.is_valid(raise_exception=True)
+    return ser.validated_data
+
+
+@csrf_exempt
+async def refresh_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    raw = request.COOKIES.get(settings.REFRESH_COOKIE)
+    if not raw:
+        return JsonResponse({"error": "No refresh token"}, status=401)
+
+    try:
+        data = await sync_to_async(_rotate)(raw)
+    except TokenError:
+        response = JsonResponse({"error": "Invalid refresh token"}, status=401)
+        clear_auth_cookies(response)
+        return response
+
+    response = JsonResponse({"detail": "ok"})
+    set_auth_cookies(response, data["access"], data.get("refresh"))
+    return response
 #     ser = TokenRefreshSerializer(data={"refresh": raw})
 #     ser.is_valid(raise_exception=True)
 #     return ser.validated_data
