@@ -3,14 +3,19 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import TokenError
+from adrf.decorators import api_view
 
-from .models import User
+from .models import User, VendorProfile
+from .serializers import VendorProfileSerializer
 from .utils import set_auth_cookies, clear_auth_cookies
 
-# Create your views here.
 def user_to_dict(user):
     return {
         "id": user.id,
@@ -41,7 +46,7 @@ async def login_view(request):
         return JsonResponse({"error": "Email and password are required"}, status=400)
 
     user = await User.objects.filter(email__iexact=email).afirst()
- 
+
     if not user or not await user.acheck_password(password):
         return JsonResponse({"error": "Invalid email or password"}, status=401)
 
@@ -53,7 +58,7 @@ async def login_view(request):
 
     refresh = await sync_to_async(RefreshToken.for_user)(user)
 
-    response = JsonResponse({"user": user_to_dict(user)})   # token body me nahi
+    response = JsonResponse({"user": user_to_dict(user)})
     set_auth_cookies(response, str(refresh.access_token), str(refresh))
     return response
 
@@ -100,27 +105,32 @@ async def refresh_view(request):
     response = JsonResponse({"detail": "ok"})
     set_auth_cookies(response, data["access"], data.get("refresh"))
     return response
-#     ser = TokenRefreshSerializer(data={"refresh": raw})
-#     ser.is_valid(raise_exception=True)
-#     return ser.validated_data
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+async def vendor_list_view(request):
+    """
+    Vendor List API (Async with ADRF):
+    - Supports JWT authentication (via HttpOnly cookies or Bearer header).
+    - Accepts optional query parameter: `?status=pending|approved|rejected|all`.
+    """
+    status_param = request.query_params.get("status")
 
-# @csrf_exempt
-# async def refresh_view(request):
-#     if request.method != "POST":
-#         return JsonResponse({"error": "Method not allowed"}, status=405)
+    queryset = VendorProfile.objects.select_related("user").all().order_by("-created_at")
 
-#     raw = request.COOKIES.get(settings.REFRESH_COOKIE)
-#     if not raw:
-#         return JsonResponse({"error": "No refresh token"}, status=401)
+    if status_param and status_param.strip().lower() != "all":
+        clean_status = status_param.strip().lower()
+        valid_statuses = [choice[0] for choice in VendorProfile.Status.choices]
 
-#     try:
-#         data = await sync_to_async(_rotate)(raw)
-#     except TokenError:
-#         response = JsonResponse({"error": "Invalid refresh token"}, status=401)
-#         clear_auth_cookies(response)
-#         return response
+        if clean_status not in valid_statuses:
+            return Response(
+                {
+                    "error": f"Invalid status '{status_param}'. Valid options are: {', '.join(valid_statuses)} (or 'all')."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        queryset = queryset.filter(status=clean_status)
 
-#     response = JsonResponse({"detail": "ok"})
-#     set_auth_cookies(response, data["access"], data.get("refresh"))
-#     return response
+    vendors = [vendor async for vendor in queryset]
+    serializer = VendorProfileSerializer(vendors, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

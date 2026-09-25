@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,13 @@ export default function LoginPage() {
     const [loginSuccess, setLoginSuccess] = useState(false);
     const router = useRouter();
     const authStore = useAuthStore();
+
+    // If already logged in, redirect to dashboard
+    useEffect(() => {
+        if (authStore.isAuthenticated) {
+            router.replace('/admin/dashboard');
+        }
+    }, [authStore.isAuthenticated, router]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

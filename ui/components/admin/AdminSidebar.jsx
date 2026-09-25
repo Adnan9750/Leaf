@@ -167,13 +167,13 @@ export default function AdminSidebar({
                     className={`flex-1 overflow-y-auto py-5 ${isCollapsed ? "px-2" : "px-3"
                         }`}
                 >
-                    {!isCollapsed && (
+                    {/* {!isCollapsed && (
                         <div className="mb-2 px-3">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                                 Menu
                             </span>
                         </div>
-                    )}
+                    )} */}
 
                     <ul className="space-y-1">
                         {navItems.map((item) => {
