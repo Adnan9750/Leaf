@@ -11,6 +11,7 @@ import {
     PanelLeft,
     X,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const navItems = [
     {
@@ -34,8 +35,9 @@ export default function AdminSidebar({
     setCollapsed: externalSetCollapsed,
 }) {
     const [internalCollapsed, setInternalCollapsed] = useState(false);
+    const currentPath = usePathname();
 
-    const [currentPath, setCurrentPath] = useState("/admin/dashboard");
+    // const [currentPath, setCurrentPath] = useState("/admin/dashboard");
 
     const isCollapsed =
         externalCollapsed !== undefined
@@ -51,7 +53,7 @@ export default function AdminSidebar({
     };
 
     const handleNavigation = (href) => {
-        setCurrentPath(href);
+        // setCurrentPath(href);
 
         if (onClose) {
             onClose();

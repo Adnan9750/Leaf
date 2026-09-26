@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Create an Axios instance with base URL and credentials
 const axiosInstance = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: "http://localhost:8000/api",
   withCredentials: true,
 });
 

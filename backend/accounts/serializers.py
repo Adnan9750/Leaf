@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.db import transaction
-from .models import User
+from .models import User,VendorProfile
 
 
 class LoginSerializer(serializers.Serializer):
@@ -41,3 +41,47 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+
+class VendorUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "is_active",
+            "date_joined",
+        ]
+
+
+class VendorProfileSerializer(serializers.ModelSerializer):
+    user = VendorUserSerializer(read_only=True)
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    first_name = serializers.CharField(source="user.first_name", read_only=True)
+    last_name = serializers.CharField(source="user.last_name", read_only=True)
+    is_active = serializers.BooleanField(source="user.is_active", read_only=True)
+
+    class Meta:
+        model = VendorProfile
+        fields = [
+            "id",
+            "user_id",
+            "user",
+            "email",
+            "first_name",
+            "last_name",
+            "is_active",
+            "company_name",
+            "phone_number",
+            "city",
+            "address",
+            "currency",
+            "status",
+            "rejection_reason",
+            "created_at",
+            "updated_at",
+        ]
+

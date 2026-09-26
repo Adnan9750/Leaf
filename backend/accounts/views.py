@@ -7,8 +7,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import TokenError
 
-from .models import User
+from .models import User, VendorProfile
+from .serializers import VendorProfileSerializer
 from .utils import set_auth_cookies, clear_auth_cookies
+from adrf.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import permission_classes
 
 # Create your views here.
 def user_to_dict(user):
@@ -100,6 +106,7 @@ async def refresh_view(request):
     response = JsonResponse({"detail": "ok"})
     set_auth_cookies(response, data["access"], data.get("refresh"))
     return response
+
 #     ser = TokenRefreshSerializer(data={"refresh": raw})
 #     ser.is_valid(raise_exception=True)
 #     return ser.validated_data
@@ -124,3 +131,32 @@ async def refresh_view(request):
 #     response = JsonResponse({"detail": "ok"})
 #     set_auth_cookies(response, data["access"], data.get("refresh"))
 #     return response
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+async def vendor_list_view(request):
+    """
+    Vendor List API (Async with ADRF):
+    - Supports JWT authentication (via HttpOnly cookies or Bearer header).
+    - Accepts optional query parameter: `?status=pending|approved|rejected|all`.
+    """
+    status_param = request.query_params.get("status")
+
+    queryset = VendorProfile.objects.select_related("user").all().order_by("-created_at")
+
+    if status_param and status_param.strip().lower() != "all":
+        clean_status = status_param.strip().lower()
+        valid_statuses = [choice[0] for choice in VendorProfile.Status.choices]
+
+        if clean_status not in valid_statuses:
+            return Response(
+                {
+                    "error": f"Invalid status '{status_param}'. Valid options are: {', '.join(valid_statuses)} (or 'all')."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        queryset = queryset.filter(status=clean_status)
+
+    vendors = [vendor async for vendor in queryset]
+    serializer = VendorProfileSerializer(vendors, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
