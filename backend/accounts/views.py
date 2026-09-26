@@ -8,7 +8,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import TokenError
 
 from .models import User, VendorProfile
-from .serializers import VendorProfileSerializer
+from .serializers import VendorProfileSerializer, VendorSignupSerializer
 from .utils import set_auth_cookies, clear_auth_cookies
 from adrf.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -25,6 +25,37 @@ def user_to_dict(user):
         "last_name": user.last_name,
         "is_superuser": user.is_superuser,
     }
+
+
+@csrf_exempt
+async def signup_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    if not isinstance(data, dict):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    @sync_to_async
+    def _validate_and_save():
+        serializer = VendorSignupSerializer(data=data)
+        if not serializer.is_valid():
+            return None, serializer.errors
+        user = serializer.save()
+        return user, None
+
+    user, errors = await _validate_and_save()
+    if errors is not None:
+        return JsonResponse(errors, status=400)
+
+    return JsonResponse(
+        {"message": "Signup successful. Wait for admin approval.", "email": user.email},
+        status=201,
+    )
 
 
 @csrf_exempt
