@@ -191,3 +191,50 @@ async def vendor_list_view(request):
     vendors = [vendor async for vendor in queryset]
     serializer = VendorProfileSerializer(vendors, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["PATCH", "PUT"])
+@permission_classes([IsAuthenticated])
+async def vendor_status_update_view(request, vendor_id):
+    """
+    Vendor Status Update API (Async with ADRF):
+    - Approves or rejects a vendor profile and updates user.is_active
+    """
+    if not request.user.is_superuser:
+        return Response(
+            {"error": "Only administrators can update vendor status."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        vendor = await VendorProfile.objects.select_related("user").aget(id=vendor_id)
+    except VendorProfile.DoesNotExist:
+        return Response({"error": "Vendor not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    new_status = request.data.get("status")
+    valid_statuses = [choice[0] for choice in VendorProfile.Status.choices]
+
+    if not new_status or new_status.strip().lower() not in valid_statuses:
+        return Response(
+            {
+                "error": f"Invalid status '{new_status}'. Valid options are: {', '.join(valid_statuses)}."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    clean_status = new_status.strip().lower()
+
+    @sync_to_async
+    def _save_vendor():
+        vendor.status = clean_status
+        if clean_status == VendorProfile.Status.APPROVED:
+            vendor.user.is_active = True
+        else:
+            vendor.user.is_active = False
+        vendor.user.save()
+        vendor.save()
+        return VendorProfileSerializer(vendor).data
+
+    data = await _save_vendor()
+    return Response(data, status=status.HTTP_200_OK)
+

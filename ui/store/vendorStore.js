@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import axiosInstance from "../utils/axiosInstance";
+import { useLoaderStore } from "./loaderStore";
 
 export const useVendorStore = create((set, get) => ({
     vendors: [],
@@ -9,8 +10,11 @@ export const useVendorStore = create((set, get) => ({
     statusFilter: "all",
 
     // Fetch vendors, optionally filtered by status
-    fetchVendors: async (status = "all") => {
+    fetchVendors: async (status = "all", withGlobalLoader = false) => {
         set({ isLoading: true, error: null });
+        if (withGlobalLoader) {
+            useLoaderStore.getState().showLoader("Fetching vendor records...");
+        }
         try {
             const response = await axiosInstance.get("/auth/vendors", {
                 params: status && status !== "all" ? { status } : {},
@@ -26,6 +30,36 @@ export const useVendorStore = create((set, get) => ({
                 err.response?.data?.error || err.message || "Failed to fetch vendors";
             set({ error: errorMessage, isLoading: false });
             return { success: false, error: errorMessage };
+        } finally {
+            if (withGlobalLoader) {
+                useLoaderStore.getState().hideLoader();
+            }
+        }
+    },
+
+    // Update vendor status
+    updateVendorStatus: async (vendorId, status) => {
+        const actionLabel =
+            status === "approved"
+                ? "Approving vendor account..."
+                : status === "rejected"
+                ? "Updating vendor to rejected..."
+                : "Updating status...";
+        useLoaderStore.getState().showLoader(actionLabel);
+        try {
+            const response = await axiosInstance.patch(`/auth/vendors/${vendorId}/status`, { status });
+            set((state) => ({
+                vendors: state.vendors.map((v) =>
+                    v.id === vendorId ? { ...v, ...response.data, status } : v
+                ),
+            }));
+            return { success: true, data: response.data };
+        } catch (err) {
+            const errorMessage =
+                err.response?.data?.error || err.message || "Failed to update vendor status";
+            return { success: false, error: errorMessage };
+        } finally {
+            useLoaderStore.getState().hideLoader();
         }
     },
 

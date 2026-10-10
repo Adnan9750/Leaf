@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import axiosInstance from "@/utils/axiosInstance";
+import { useLoaderStore } from "@/store/loaderStore";
 // import Navbar from "@/components/Navbar";
 
 export default function SignupPage() {
@@ -91,6 +92,7 @@ export default function SignupPage() {
         setLoading(true);
         setGeneralError("");
         setFieldErrors({});
+        useLoaderStore.getState().showLoader("Submitting vendor registration...");
 
         try {
             const res = await axiosInstance.post("/auth/signup", formData);
@@ -128,6 +130,7 @@ export default function SignupPage() {
             }
         } finally {
             setLoading(false);
+            useLoaderStore.getState().hideLoader();
         }
     };
 
@@ -420,18 +423,11 @@ export default function SignupPage() {
                                     <div className="pt-2">
                                         <Button
                                             type="submit"
-                                            className="w-full h-12 text-base font-semibold bg-canopy text-husk hover:bg-canopy/90  shadow-canopy/20 cursor-pointe"
+                                            className="w-full h-12 text-base font-semibold bg-canopy text-husk hover:bg-canopy/90  shadow-canopy/20 cursor-pointer"
                                         >
                                             <span>Next</span>
                                             <ArrowRight className="w-5 h-5 ml-1" />
                                         </Button>
-                                        {/* <Button
-                                            type="submit"
-                                            className="w-full h-12 text-base font-semibold shadow-lg shadow-canopy/20"
-                                        >
-                                            <span>Next</span>
-                                            <ArrowRight className="w-5 h-5 ml-1" />
-                                        </Button> */}
                                     </div>
                                 </form>
                             )}
@@ -533,7 +529,7 @@ export default function SignupPage() {
 
                                         <Button
                                             type="submit"
-                                            className="flex-1 h-12 text-base font-semibold bg-canopy text-husk hover:bg-canopy/90  shadow-canopy/20 cursor-pointe"
+                                            className="flex-1 h-12 text-base font-semibold bg-canopy text-husk hover:bg-canopy/90  shadow-canopy/20 cursor-pointer"
                                         >
                                             <span>Next</span>
                                             <ArrowRight className="w-5 h-5 ml-1" />
