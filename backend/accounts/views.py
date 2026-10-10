@@ -10,6 +10,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from .models import User, VendorProfile
 from .serializers import VendorProfileSerializer, VendorSignupSerializer
 from .utils import set_auth_cookies, clear_auth_cookies
+from .emails import send_vendor_approval_email, send_vendor_rejection_email
 from adrf.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -192,15 +193,44 @@ async def vendor_list_view(request):
     serializer = VendorProfileSerializer(vendors, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+def _process_vendor_status_change(vendor, new_status, rejection_reason=None):
+    clean_status = new_status.strip().lower()
+    vendor.status = clean_status
+    email_sent = False
+    email_message = ""
 
-@api_view(["PATCH", "PUT"])
+    if clean_status == VendorProfile.Status.APPROVED:
+        vendor.user.is_active = True
+        vendor.rejection_reason = ""
+        vendor.user.save()
+        vendor.save()
+        email_sent, email_message = send_vendor_approval_email(vendor)
+
+    elif clean_status == VendorProfile.Status.REJECTED:
+        vendor.user.is_active = False
+        vendor.rejection_reason = (rejection_reason or "Your application did not meet our verification criteria.").strip()
+        vendor.user.save()
+        vendor.save()
+        email_sent, email_message = send_vendor_rejection_email(vendor, vendor.rejection_reason)
+
+    elif clean_status == VendorProfile.Status.PENDING:
+        vendor.user.is_active = False
+        vendor.user.save()
+        vendor.save()
+
+    data = VendorProfileSerializer(vendor).data
+    return data, email_sent, email_message
+
+
+@api_view(["PATCH", "PUT", "POST"])
 @permission_classes([IsAuthenticated])
 async def vendor_status_update_view(request, vendor_id):
     """
     Vendor Status Update API (Async with ADRF):
-    - Approves or rejects a vendor profile and updates user.is_active
+    - Approves or rejects a vendor profile and updates user.is_active.
+    - Sends an email on approval or rejection with reason attached.
     """
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.is_staff):
         return Response(
             {"error": "Only administrators can update vendor status."},
             status=status.HTTP_403_FORBIDDEN,
@@ -223,18 +253,94 @@ async def vendor_status_update_view(request, vendor_id):
         )
 
     clean_status = new_status.strip().lower()
+    rejection_reason = request.data.get("rejection_reason") or request.data.get("reason")
 
-    @sync_to_async
-    def _save_vendor():
-        vendor.status = clean_status
-        if clean_status == VendorProfile.Status.APPROVED:
-            vendor.user.is_active = True
-        else:
-            vendor.user.is_active = False
-        vendor.user.save()
-        vendor.save()
-        return VendorProfileSerializer(vendor).data
+    data, email_sent, email_message = await sync_to_async(_process_vendor_status_change)(
+        vendor, clean_status, rejection_reason
+    )
 
-    data = await _save_vendor()
-    return Response(data, status=status.HTTP_200_OK)
+    response_payload = {
+        **data,
+        "message": f"Vendor status successfully updated to '{clean_status}'.",
+        "email_sent": email_sent,
+        "email_message": email_message,
+    }
+    return Response(response_payload, status=status.HTTP_200_OK)
+
+
+@api_view(["POST", "PATCH"])
+@permission_classes([IsAuthenticated])
+async def vendor_approve_view(request, vendor_id):
+    """
+    Dedicated Vendor Approval API:
+    - Sets vendor status to 'approved' and user.is_active=True.
+    - Sends a personalized approval email to the vendor.
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        return Response(
+            {"error": "Only administrators can approve vendors."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        vendor = await VendorProfile.objects.select_related("user").aget(id=vendor_id)
+    except VendorProfile.DoesNotExist:
+        return Response({"error": "Vendor not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    data, email_sent, email_message = await sync_to_async(_process_vendor_status_change)(
+        vendor, VendorProfile.Status.APPROVED
+    )
+
+    return Response(
+        {
+            **data,
+            "message": "Vendor approved successfully and confirmation email sent.",
+            "email_sent": email_sent,
+            "email_message": email_message,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST", "PATCH"])
+@permission_classes([IsAuthenticated])
+async def vendor_reject_view(request, vendor_id):
+    """
+    Dedicated Vendor Rejection API:
+    - Sets vendor status to 'rejected' and user.is_active=False.
+    - Attaches rejection reason to the vendor record.
+    - Sends a rejection email with the specific reason to the vendor.
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        return Response(
+            {"error": "Only administrators can reject vendors."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        vendor = await VendorProfile.objects.select_related("user").aget(id=vendor_id)
+    except VendorProfile.DoesNotExist:
+        return Response({"error": "Vendor not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    rejection_reason = request.data.get("rejection_reason") or request.data.get("reason")
+    if not rejection_reason or not rejection_reason.strip():
+        return Response(
+            {"error": "Please provide a rejection reason explaining why the application was rejected."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    data, email_sent, email_message = await sync_to_async(_process_vendor_status_change)(
+        vendor, VendorProfile.Status.REJECTED, rejection_reason
+    )
+
+    return Response(
+        {
+            **data,
+            "message": "Vendor rejected successfully and rejection reason email sent.",
+            "email_sent": email_sent,
+            "email_message": email_message,
+        },
+        status=status.HTTP_200_OK,
+    )
+
 

@@ -26,7 +26,7 @@ export default function VendorHeader({ isLoading, onRefresh }) {
         </p>
       </div>
 
-      <div className="flex items-center gap-2 self-start sm:self-auto">
+      {/* <div className="flex items-center gap-2 self-start sm:self-auto">
         <Button
           variant="outline"
           size="sm"
@@ -47,7 +47,7 @@ export default function VendorHeader({ isLoading, onRefresh }) {
           <RotateCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
           <span>Refresh</span>
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

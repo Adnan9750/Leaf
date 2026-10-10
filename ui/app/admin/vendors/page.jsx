@@ -9,6 +9,8 @@ import VendorHeader from "@/components/admin/vendors/VendorHeader";
 import VendorStats from "@/components/admin/vendors/VendorStats";
 import VendorFilters from "@/components/admin/vendors/VendorFilters";
 import VendorTable from "@/components/admin/vendors/VendorTable";
+import RejectVendorModal from "@/components/admin/vendors/RejectVendorModal";
+import VendorDetailsModal from "@/components/admin/vendors/VendorDetailsModal";
 
 export default function VendorListPage() {
   const { vendors, isLoading, error, fetchVendors, updateVendorStatus } =
@@ -16,15 +18,41 @@ export default function VendorListPage() {
   const [filter, setFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
+  const [rejectingVendor, setRejectingVendor] = useState(null);
+  const [viewingVendor, setViewingVendor] = useState(null);
+  const [isRejectSubmitting, setIsRejectSubmitting] = useState(false);
 
   useEffect(() => {
     fetchVendors("all");
   }, [fetchVendors]);
 
+  // Keep viewingVendor updated if vendor list is modified
+  useEffect(() => {
+    if (viewingVendor) {
+      const updated = vendors.find((v) => v.id === viewingVendor.id);
+      if (updated) {
+        setViewingVendor(updated);
+      }
+    }
+  }, [vendors, viewingVendor]);
+
   const handleStatusUpdate = async (vendorId, status) => {
     setUpdatingId(vendorId);
     await updateVendorStatus(vendorId, status);
     setUpdatingId(null);
+  };
+
+  const handleRejectRequest = (vendor) => {
+    setRejectingVendor(vendor);
+  };
+
+  const handleConfirmReject = async (vendorId, reason) => {
+    setIsRejectSubmitting(true);
+    setUpdatingId(vendorId);
+    await updateVendorStatus(vendorId, "rejected", reason);
+    setIsRejectSubmitting(false);
+    setUpdatingId(null);
+    setRejectingVendor(null);
   };
 
   const stats = useMemo(() => {
@@ -101,7 +129,27 @@ export default function VendorListPage() {
         isLoading={isLoading}
         searchQuery={searchQuery}
         onStatusUpdate={handleStatusUpdate}
+        onRejectRequest={handleRejectRequest}
+        onViewDetails={(vendor) => setViewingVendor(vendor)}
         updatingId={updatingId}
+      />
+
+      {/* Vendor Details Dialog Modal */}
+      <VendorDetailsModal
+        isOpen={!!viewingVendor}
+        vendor={viewingVendor}
+        onClose={() => setViewingVendor(null)}
+        onAccept={(id) => handleStatusUpdate(id, "approved")}
+        onReject={(vendor) => handleRejectRequest(vendor)}
+      />
+
+      {/* Rejection Reason Modal */}
+      <RejectVendorModal
+        isOpen={!!rejectingVendor}
+        vendor={rejectingVendor}
+        onClose={() => setRejectingVendor(null)}
+        onConfirm={handleConfirmReject}
+        isSubmitting={isRejectSubmitting}
       />
     </div>
   );

@@ -19,6 +19,8 @@ export default function VendorTable({
   isLoading = false,
   searchQuery = "",
   onStatusUpdate,
+  onRejectRequest,
+  onViewDetails,
   updatingId = null,
 }) {
   return (
@@ -85,6 +87,8 @@ export default function VendorTable({
                   key={vendor.id}
                   vendor={vendor}
                   onStatusUpdate={onStatusUpdate}
+                  onRejectRequest={onRejectRequest}
+                  onViewDetails={onViewDetails}
                   isUpdating={updatingId === vendor.id}
                 />
               ))}

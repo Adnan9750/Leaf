@@ -6,6 +6,8 @@ from .views import (
     logout_view,
     vendor_list_view,
     vendor_status_update_view,
+    vendor_approve_view,
+    vendor_reject_view,
 )
 
 urlpatterns = [
@@ -15,4 +17,6 @@ urlpatterns = [
     path("logout", logout_view),
     path("vendors", vendor_list_view),
     path("vendors/<int:vendor_id>/status", vendor_status_update_view),
+    path("vendors/<int:vendor_id>/approve", vendor_approve_view),
+    path("vendors/<int:vendor_id>/reject", vendor_reject_view),
 ]

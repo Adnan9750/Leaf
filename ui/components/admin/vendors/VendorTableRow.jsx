@@ -7,11 +7,10 @@ import {
   MapPin,
   Building2,
   MoreHorizontal,
-  Check,
-  X,
   Clock,
   CheckCircle2,
   XCircle,
+  Eye,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -51,14 +51,27 @@ const statusConfig = {
   },
 };
 
-export default function VendorTableRow({ vendor, onStatusUpdate, isUpdating }) {
+export default function VendorTableRow({
+  vendor,
+  onStatusUpdate,
+  onRejectRequest,
+  onViewDetails,
+  isUpdating,
+}) {
   const statusInfo = statusConfig[vendor.status] || statusConfig.pending;
-  const isPending = vendor.status === "pending";
 
   const getInitials = (v) => {
     const f = v.first_name?.[0] || "";
     const l = v.last_name?.[0] || "";
     return (f + l).toUpperCase() || (v.company_name?.[0] || "V").toUpperCase();
+  };
+
+  const handleRejectClick = () => {
+    if (onRejectRequest) {
+      onRejectRequest(vendor);
+    } else {
+      onStatusUpdate(vendor.id, "rejected");
+    }
   };
 
   return (
@@ -108,80 +121,98 @@ export default function VendorTableRow({ vendor, onStatusUpdate, isUpdating }) {
 
       {/* Status Badge */}
       <TableCell className="py-3.5">
-        <Badge
-          variant={statusInfo.variant}
-          className={`${statusInfo.className} inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-md`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${statusInfo.dotColor}`} />
-          {statusInfo.label}
-        </Badge>
+        <div className="space-y-1">
+          <Badge
+            variant={statusInfo.variant}
+            className={`${statusInfo.className} inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-md`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${statusInfo.dotColor}`} />
+            {statusInfo.label}
+          </Badge>
+          {vendor.status === "rejected" && vendor.rejection_reason && (
+            <p
+              className="text-[11px] text-red-600 max-w-[180px] truncate"
+              title={`Reason: ${vendor.rejection_reason}`}
+            >
+              Reason: {vendor.rejection_reason}
+            </p>
+          )}
+        </div>
       </TableCell>
 
       {/* Actions */}
       <TableCell className="py-3.5 text-right pr-6">
-        <div className="flex items-center justify-end gap-2">
+        <div className="inline-flex items-center justify-end gap-1.5">
           {isUpdating ? (
-            <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
-          ) : isPending ? (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onStatusUpdate(vendor.id, "approved")}
-                className="h-8 px-2.5 rounded-lg border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold gap-1.5 cursor-pointer"
-              >
-                <Check className="h-3.5 w-3.5" />
-                <span>Approve</span>
-              </Button>
-
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onStatusUpdate(vendor.id, "rejected")}
-                className="h-8 px-2.5 rounded-lg border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-xs font-semibold gap-1.5 cursor-pointer"
-              >
-                <X className="h-3.5 w-3.5" />
-                <span>Reject</span>
-              </Button>
-            </>
+            <div className="h-8 w-8 flex items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+            </div>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-2.5 rounded-lg border-zinc-200 hover:bg-zinc-100 text-zinc-700 text-xs font-medium gap-1 cursor-pointer"
-                >
-                  <span>Action</span>
-                  <MoreHorizontal className="h-3.5 w-3.5 text-zinc-500" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                align="end"
-                className="w-48 rounded-xl p-1.5 shadow-md border border-zinc-200 bg-white"
+            <>
+              {/* Quick View Action */}
+              {/* <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onViewDetails?.(vendor)}
+                className="h-8 w-8 p-0 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-all active:scale-95 cursor-pointer"
+                title="View full details"
               >
-                {vendor.status === "approved" && (
-                  <DropdownMenuItem
-                    onClick={() => onStatusUpdate(vendor.id, "rejected")}
-                    className="cursor-pointer gap-2 text-xs font-medium text-red-600 hover:bg-red-50 focus:bg-red-50"
-                  >
-                    <XCircle className="h-4 w-4 text-red-600" />
-                    <span>Set Inactive (Reject)</span>
-                  </DropdownMenuItem>
-                )}
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">View vendor details</span>
+              </Button> */}
 
-                {vendor.status !== "approved" && (
-                  <DropdownMenuItem
-                    onClick={() => onStatusUpdate(vendor.id, "approved")}
-                    className="cursor-pointer gap-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50 focus:bg-emerald-50"
+              {/* Action Dropdown Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 data-[state=open]:bg-zinc-100 data-[state=open]:text-zinc-900 transition-all active:scale-95 cursor-pointer"
+                    title="More actions"
                   >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Set Active (Approve)</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="end"
+                  className="w-44 rounded-xl p-1.5 shadow-xl border border-zinc-200/90 bg-white/95 backdrop-blur-sm"
+                >
+                  <DropdownMenuItem
+                    onClick={() => onViewDetails?.(vendor)}
+                    className="cursor-pointer gap-2.5 px-2.5 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
+                  >
+                    <Eye className="h-3.5 w-3.5 text-zinc-400" />
+                    <span>View Details</span>
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+
+                  <DropdownMenuSeparator className="my-1 bg-zinc-100" />
+
+                  {vendor.status !== "approved" && (
+                    <DropdownMenuItem
+                      onClick={() => onStatusUpdate(vendor.id, "approved")}
+                      className="cursor-pointer gap-2.5 px-2.5 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 rounded-lg transition-colors"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Accept</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  {vendor.status !== "rejected" && (
+                    <DropdownMenuItem
+                      onClick={handleRejectClick}
+                      className="cursor-pointer gap-2.5 px-2.5 py-2 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors"
+                    >
+                      <XCircle className="h-3.5 w-3.5 text-red-500" />
+                      <span>Reject</span>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )}
         </div>
       </TableCell>

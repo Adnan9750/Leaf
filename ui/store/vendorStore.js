@@ -38,16 +38,20 @@ export const useVendorStore = create((set, get) => ({
     },
 
     // Update vendor status
-    updateVendorStatus: async (vendorId, status) => {
+    updateVendorStatus: async (vendorId, status, rejection_reason = "") => {
         const actionLabel =
             status === "approved"
-                ? "Approving vendor account..."
+                ? "Approving vendor & sending email..."
                 : status === "rejected"
-                ? "Updating vendor to rejected..."
+                ? "Rejecting vendor & sending email..."
                 : "Updating status...";
         useLoaderStore.getState().showLoader(actionLabel);
         try {
-            const response = await axiosInstance.patch(`/auth/vendors/${vendorId}/status`, { status });
+            const payload = { status };
+            if (rejection_reason) {
+                payload.rejection_reason = rejection_reason;
+            }
+            const response = await axiosInstance.patch(`/auth/vendors/${vendorId}/status`, payload);
             set((state) => ({
                 vendors: state.vendors.map((v) =>
                     v.id === vendorId ? { ...v, ...response.data, status } : v

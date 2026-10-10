@@ -29,21 +29,19 @@ export default function VendorFilters({
             <button
               key={tab.key}
               onClick={() => setFilter(tab.key)}
-              className={`relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
-                isActive
-                  ? "bg-white text-zinc-900 font-semibold shadow-xs"
-                  : "text-zinc-600 hover:text-zinc-900"
-              }`}
+              className={`relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${isActive
+                ? "bg-canopy text-white font-semibold shadow-xs"
+                : "text-zinc-600 hover:text-zinc-900"
+                }`}
             >
               {tab.label}
 
               {tab.key !== "" && (
                 <span
-                  className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full text-[10px] font-bold px-1.5 ${
-                    isActive
-                      ? "bg-zinc-100 text-zinc-800"
-                      : "bg-zinc-200/60 text-zinc-500"
-                  }`}
+                  className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full text-[10px] font-bold px-1.5 ${isActive
+                    ? "bg-zinc-100 text-zinc-800"
+                    : "bg-zinc-200/60 text-zinc-500"
+                    }`}
                 >
                   {count}
                 </span>
