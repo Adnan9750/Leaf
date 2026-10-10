@@ -5,15 +5,18 @@ import Link from "next/link";
 import {
     LayoutDashboard,
     Users,
+    Package,
     Leaf,
     LogOut,
     PanelLeftClose,
     PanelLeft,
     X,
+    Store,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
-const navItems = [
+const adminNavItems = [
     {
         name: "Dashboard",
         href: "/admin/dashboard",
@@ -26,6 +29,27 @@ const navItems = [
         icon: Users,
         description: "Manage vendor accounts",
     },
+    {
+        name: "Products",
+        href: "/admin/products",
+        icon: Package,
+        description: "Platform product catalog",
+    },
+];
+
+const vendorNavItems = [
+    {
+        name: "Dashboard",
+        href: "/admin/dashboard",
+        icon: LayoutDashboard,
+        description: "Store overview",
+    },
+    {
+        name: "Products",
+        href: "/admin/products",
+        icon: Package,
+        description: "Manage product catalog",
+    },
 ];
 
 export default function AdminSidebar({
@@ -36,13 +60,16 @@ export default function AdminSidebar({
 }) {
     const [internalCollapsed, setInternalCollapsed] = useState(false);
     const currentPath = usePathname();
-
-    // const [currentPath, setCurrentPath] = useState("/admin/dashboard");
+    const router = useRouter();
+    const { user, logout } = useAuthStore();
 
     const isCollapsed =
         externalCollapsed !== undefined
             ? externalCollapsed
             : internalCollapsed;
+
+    const isAdmin = Boolean(user?.is_superuser || user?.role === "admin");
+    const navItems = isAdmin ? adminNavItems : vendorNavItems;
 
     const toggleCollapsed = () => {
         if (externalSetCollapsed) {
@@ -53,33 +80,28 @@ export default function AdminSidebar({
     };
 
     const handleNavigation = (href) => {
-        // setCurrentPath(href);
-
         if (onClose) {
             onClose();
         }
     };
 
-    // UI-only demo user
-    const user = {
-        first_name: "Admin",
-        last_name: "User",
-        email: "admin@example.com",
-    };
+    const initials = user?.first_name
+        ? (user.first_name[0] + (user.last_name?.[0] || "")).toUpperCase()
+        : user?.company_name
+            ? user.company_name.substring(0, 2).toUpperCase()
+            : user?.email
+                ? user.email.substring(0, 2).toUpperCase()
+                : "LF";
 
-    const initials = user.first_name
-        ? user.first_name.substring(0, 2).toUpperCase()
-        : user.email
-            ? user.email.substring(0, 2).toUpperCase()
-            : "AD";
+    const displayName = user?.company_name
+        ? user.company_name
+        : user?.first_name
+            ? `${user.first_name} ${user.last_name || ""}`.trim()
+            : user?.email?.split("@")[0] || (isAdmin ? "Administrator" : "Vendor");
 
-    const displayName = user.first_name
-        ? `${user.first_name} ${user.last_name || ""}`.trim()
-        : user.email?.split("@")[0] || "Administrator";
-
-    const handleLogout = () => {
-        // UI only — no API call
-        console.log("Sign out clicked");
+    const handleLogout = async () => {
+        await logout();
+        router.replace("/login");
     };
 
     return (
@@ -127,13 +149,20 @@ export default function AdminSidebar({
                                         LeafLens
                                     </p>
 
-                                    <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 border border-zinc-200 uppercase">
-                                        Admin
+                                    <span
+                                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase border ${isAdmin
+                                            ? "bg-zinc-100 text-zinc-700 border-zinc-200"
+                                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                            }`}
+                                    >
+                                        {isAdmin ? "Admin" : "Vendor"}
                                     </span>
                                 </div>
 
                                 <p className="text-[11px] text-zinc-400 truncate mt-0.5">
-                                    Admin Dashboard
+                                    {isAdmin
+                                        ? "Admin Dashboard"
+                                        : user?.company_name || "Vendor Portal"}
                                 </p>
                             </div>
                         )}
@@ -172,7 +201,7 @@ export default function AdminSidebar({
                     {!isCollapsed && (
                         <div className="mb-2 px-3">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                                Menu
+                                {isAdmin ? "Administration" : "Store Menu"}
                             </span>
                         </div>
                     )}
@@ -229,7 +258,7 @@ export default function AdminSidebar({
                             {/* Avatar */}
                             <div
                                 className="relative shrink-0 cursor-pointer"
-                                title={`${displayName} (${user.email})`}
+                                title={`${displayName} (${user?.email || ""})`}
                             >
                                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-canopy text-xs font-medium text-white shadow-xs">
                                     {initials}
@@ -265,7 +294,7 @@ export default function AdminSidebar({
                                 </p>
 
                                 <p className="truncate text-[10px] text-zinc-500">
-                                    {user.email}
+                                    {user?.email || "Signed In"}
                                 </p>
                             </div>
 

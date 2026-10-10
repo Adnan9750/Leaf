@@ -36,14 +36,18 @@ export default function AdminNavbar({ onMenuClick }) {
     };
 
     const initials = user?.first_name
-        ? user.first_name.substring(0, 2).toUpperCase()
-        : user?.email
-            ? user.email.substring(0, 2).toUpperCase()
-            : "AD";
+        ? (user.first_name[0] + (user.last_name?.[0] || "")).toUpperCase()
+        : user?.company_name
+            ? user.company_name.substring(0, 2).toUpperCase()
+            : user?.email
+                ? user.email.substring(0, 2).toUpperCase()
+                : "LF";
 
-    const displayName = user?.first_name
-        ? `${user.first_name} ${user.last_name || ""}`.trim()
-        : user?.email?.split("@")[0] || "Administrator";
+    const displayName = user?.company_name
+        ? user.company_name
+        : user?.first_name
+            ? `${user.first_name} ${user.last_name || ""}`.trim()
+            : user?.email?.split("@")[0] || "User";
 
     return (
         <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-zinc-200 bg-white px-4 sm:px-6 shadow-xs">

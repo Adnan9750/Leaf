@@ -19,12 +19,22 @@ from rest_framework.decorators import permission_classes
 
 # Create your views here.
 def user_to_dict(user):
+    is_admin = bool(user.is_superuser or user.is_staff)
+    company_name = None
+    if hasattr(user, "vendor_profile"):
+        try:
+            company_name = user.vendor_profile.company_name
+        except Exception:
+            pass
     return {
         "id": user.id,
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
         "is_superuser": user.is_superuser,
+        "is_staff": user.is_staff,
+        "role": "admin" if is_admin else "vendor",
+        "company_name": company_name,
     }
 
 
@@ -78,7 +88,7 @@ async def login_view(request):
     if not email or not password:
         return JsonResponse({"error": "Email and password are required"}, status=400)
 
-    user = await User.objects.filter(email__iexact=email).afirst()
+    user = await User.objects.select_related("vendor_profile").filter(email__iexact=email).afirst()
  
     if not user or not await user.acheck_password(password):
         return JsonResponse({"error": "Invalid email or password"}, status=401)
