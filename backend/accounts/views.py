@@ -124,9 +124,13 @@ async def logout_view(request):
 
 
 def _rotate(raw):
-    ser = TokenRefreshSerializer(data={"refresh": raw})
-    ser.is_valid(raise_exception=True)
-    return ser.validated_data
+    try:
+        ser = TokenRefreshSerializer(data={"refresh": raw})
+        if not ser.is_valid():
+            return None, ser.errors
+        return ser.validated_data, None
+    except Exception as exc:
+        return None, str(exc)
 
 
 @csrf_exempt
@@ -138,41 +142,15 @@ async def refresh_view(request):
     if not raw:
         return JsonResponse({"error": "No refresh token"}, status=401)
 
-    try:
-        data = await sync_to_async(_rotate)(raw)
-    except TokenError:
-        response = JsonResponse({"error": "Invalid refresh token"}, status=401)
+    data, error = await sync_to_async(_rotate)(raw)
+    if error or not data:
+        response = JsonResponse({"error": "Invalid or expired refresh token", "detail": error}, status=401)
         clear_auth_cookies(response)
         return response
 
-    response = JsonResponse({"detail": "ok"})
-    set_auth_cookies(response, data["access"], data.get("refresh"))
+    response = JsonResponse({"detail": "Token refreshed successfully"})
+    set_auth_cookies(response, data.get("access"), data.get("refresh"))
     return response
-
-#     ser = TokenRefreshSerializer(data={"refresh": raw})
-#     ser.is_valid(raise_exception=True)
-#     return ser.validated_data
-
-
-# @csrf_exempt
-# async def refresh_view(request):
-#     if request.method != "POST":
-#         return JsonResponse({"error": "Method not allowed"}, status=405)
-
-#     raw = request.COOKIES.get(settings.REFRESH_COOKIE)
-#     if not raw:
-#         return JsonResponse({"error": "No refresh token"}, status=401)
-
-#     try:
-#         data = await sync_to_async(_rotate)(raw)
-#     except TokenError:
-#         response = JsonResponse({"error": "Invalid refresh token"}, status=401)
-#         clear_auth_cookies(response)
-#         return response
-
-#     response = JsonResponse({"detail": "ok"})
-#     set_auth_cookies(response, data["access"], data.get("refresh"))
-#     return response
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
