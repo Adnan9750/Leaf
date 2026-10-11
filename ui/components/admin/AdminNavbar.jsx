@@ -1,10 +1,17 @@
-// d:/Leaf/ui/components/admin/AdminNavbar.jsx
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import axiosInstance from "@/utils/axiosInstance";
+import {
+    Search,
+    SlidersHorizontal,
+    Mail,
+    Bell,
+    Menu,
+    LogOut,
+    ChevronDown,
+} from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,25 +19,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, LogOut, ChevronDown, ShieldCheck } from "lucide-react";
 
 export default function AdminNavbar({ onMenuClick }) {
     const router = useRouter();
-    const user = useAuthStore((state) => state.user);
-    const logout = useAuthStore((state) => state.logout);
+    const { user, logout } = useAuthStore();
     const [isLoggingOut, setIsLoggingOut] = React.useState(false);
-
-    // Placeholder for any CSRF fetch if needed
-    useEffect(() => { }, []);
 
     const handleLogout = async () => {
         setIsLoggingOut(true);
         try {
-            await axiosInstance.post("/auth/logout", {});
-        } catch (e) {
-            // ignore errors
+            await logout();
         } finally {
-            logout();
             router.replace("/login");
         }
     };
@@ -41,54 +40,86 @@ export default function AdminNavbar({ onMenuClick }) {
             ? user.company_name.substring(0, 2).toUpperCase()
             : user?.email
                 ? user.email.substring(0, 2).toUpperCase()
-                : "LF";
+                : "AH";
 
     const displayName = user?.company_name
         ? user.company_name
         : user?.first_name
             ? `${user.first_name} ${user.last_name || ""}`.trim()
-            : user?.email?.split("@")[0] || "User";
+            : "Super Admin";
+
+    const displayEmail = user?.email;
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-zinc-200 bg-white px-4 sm:px-6 shadow-xs">
-            {/* Left side */}
-            <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between gap-4 select-none sticky top-0 z-50 w-full bg-white shadow-md rounded-xl py-2 px-4">
+            {/* Left side: Mobile Menu Button & Search Bar */}
+            <div className="flex items-center gap-3 flex-1 max-w-md">
                 {onMenuClick && (
                     <button
                         onClick={onMenuClick}
-                        className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 md:hidden"
+                        className="rounded-2xl bg-white p-2.5 text-zinc-500 hover:text-zinc-900 border border-black/[0.04] shadow-[0_4px_24px_rgba(0,0,0,0.02)] md:hidden cursor-pointer"
                         aria-label="Open sidebar"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
                 )}
-                {/* <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">
-            Admin Portal
-          </span>
-        </div> */}
+
+                {/* Floating Search Pill Input */}
+                {/* <div className="relative w-full flex items-center">
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+                        <Search className="h-4 w-4" />
+                    </div>
+
+                    <input
+                        type="text"
+                        placeholder="Search Task..."
+                        className="w-full h-11 pl-10 pr-10 text-xs rounded-2xl bg-white border border-black/[0.04] shadow-[0_4px_24px_rgba(0,0,0,0.02)] text-zinc-800 placeholder:text-zinc-400 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                    />
+
+                    <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
+                        title="Search filters"
+                    >
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                    </button>
+                </div> */}
             </div>
 
-            {/* Right side - user menu */}
-            <div className="flex items-center gap-3">
+            {/* Right side: Quick Action Buttons & Profile Card */}
+            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+
+                {/* Bell Notification Button */}
+                {/* <button
+                    type="button"
+                    className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white border border-black/[0.04] shadow-[0_4px_24px_rgba(0,0,0,0.02)] text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer"
+                    title="Notifications"
+                >
+                    <Bell className="h-4 w-4" />
+                    <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-[#10B981] ring-2 ring-white" />
+                </button> */}
+
+                {/* User Profile Pill Card */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="flex items-center gap-2.5 rounded-full border border-zinc-200 bg-zinc-50/80 hover:bg-zinc-100 hover:border-zinc-300 py-1 pl-1 pr-3 text-sm font-medium text-zinc-800 transition-all outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 cursor-pointer">
-                            <div className="relative">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-white shadow-xs">
-                                    {initials}
-                                </span>
-                                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+                        <button className="flex items-center gap-2.5 rounded-2xl bg-white border border-black/[0.04] shadow-[0_4px_24px_rgba(0,0,0,0.02)] p-1.5 pr-3 hover:bg-zinc-50 transition-colors outline-none cursor-pointer">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-white overflow-hidden shadow-xs">
+                                {initials}
                             </div>
+
                             <div className="hidden sm:flex flex-col text-left">
                                 <span className="text-xs font-bold text-zinc-900 leading-tight">
                                     {displayName}
                                 </span>
+                                <span className="text-[10px] text-zinc-400 leading-tight mt-0.5">
+                                    {displayEmail}
+                                </span>
                             </div>
-                            <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
+
+                            <ChevronDown className="h-3 w-3 text-zinc-400 ml-0.5 hidden sm:block" />
                         </button>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent
                         align="end"
                         className="w-56 p-1.5 rounded-xl bg-white shadow-lg text-zinc-800 border-none ring-1 ring-zinc-200"

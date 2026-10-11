@@ -24,7 +24,7 @@ export default function VendorTable({
   updatingId = null,
 }) {
   return (
-    <Card className="rounded-xl border-none bg-white shadow-xs overflow-hidden">
+    <Card className="rounded-[28px] border border-black/[0.04] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.02)] overflow-hidden">
       {/* Loading State */}
       {isLoading && vendors.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">

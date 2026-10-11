@@ -49,7 +49,7 @@ export default function VendorStats({ stats }) {
         return (
           <Card
             key={card.key}
-            className={`p-5 rounded-xl border-none ${card.bg} shadow-xs`}
+            className="p-5 rounded-[24px] border border-black/[0.04] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
           >
             <div className="flex items-center justify-between">
               <div>
