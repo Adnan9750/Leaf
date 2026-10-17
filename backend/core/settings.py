@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "adrf",
     "rest_framework_simplejwt.token_blacklist",
     "accounts",
+    "store"
 ]
 
 from datetime import timedelta

@@ -21,4 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('api/auth/', include('accounts.urls')),
+    # New endpoint for plant disease prediction using TFLite model
+    path('api/', include('detection.urls')),
+    path('api/store/', include('store.urls')),
 ]

@@ -16,6 +16,7 @@ import {
     Leaf,
     X,
     Sparkles,
+    FolderTree,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
@@ -26,6 +27,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
     const { user, logout } = useAuthStore();
 
     const isAdmin = Boolean(user?.is_superuser || user?.role === "admin");
+    const isSuperAdmin = Boolean(user?.is_superuser || (user?.role === "admin" && !user?.company_name));
 
     const mainMenuItems = [
         {
@@ -42,6 +44,14 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     icon: Users,
                     badge: null,
                     match: ["/admin/vendors"],
+                },
+
+                {
+                    name: "Categories",
+                    href: "/admin/categories",
+                    icon: FolderTree,
+                    badge: null,
+                    match: ["/admin/categories"],
                 },
             ]
             : []),
@@ -70,7 +80,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
             {/* Sidebar Floating Card */}
             <aside
-                className={`fixed md:sticky top-3 sm:top-5 lg:top-6 z-40 flex h-[calc(100vh-24px)] sm:h-[calc(100vh-40px)] lg:h-[calc(100vh-48px)] w-64 shrink-0 flex-col justify-between rounded-[28px] bg-white p-5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-black/[0.04] transition-transform duration-300 select-none overflow-y-auto ${isOpen
+                className={`fixed md:sticky top-3 sm:top-5 lg:top-4 z-40 flex h-[calc(100vh-24px)] sm:h-[calc(100vh-40px)] lg:h-[calc(100vh-48px)] w-64 shrink-0 flex-col justify-between rounded-[28px] bg-white p-5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-black/[0.04] transition-transform duration-300 select-none overflow-y-auto ${isOpen
                     ? "translate-x-0 left-3"
                     : "-translate-x-full md:translate-x-0 left-0"
                     }`}
@@ -152,8 +162,8 @@ export default function AdminSidebar({ isOpen, onClose }) {
                 </div>
 
                 {/* Bottom App Download Card Widget */}
-                <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#062c19] via-[#08331d] to-[#041a0f] p-4 text-white shadow-md">
-                    {/* Background wavy organic glow */}
+                {/* <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#062c19] via-[#08331d] to-[#041a0f] p-4 text-white shadow-md">
+
                     <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-emerald-500/15 blur-xl pointer-events-none" />
                     <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-emerald-400/10 blur-lg pointer-events-none" />
 
@@ -178,7 +188,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                             Download
                         </button>
                     </div>
-                </div>
+                </div> */}
             </aside>
         </>
     );
