@@ -1,0 +1,388 @@
+{
+    "Corn_Common Rust": {
+        "crop": "Corn",
+        "name": "Common Rust",
+        "type": "Fungal",
+        "symptoms": [
+            "Small, round to elongated reddish-brown pustules on both sides of the leaf",
+            "Pustules burst and release powdery rust-colored spores",
+            "Severe infection makes leaves yellow and dry early"
+        ],
+        "causes": "Fungus (Puccinia sorghi). Spores travel by wind and it spreads fastest in cool, humid weather with heavy dew.",
+        "treatment": [
+            "Apply a recommended fungicide if infection starts early and is spreading",
+            "Ask your local agriculture office for the right product and dose for your area"
+        ],
+        "prevention": [
+            "Plant rust-resistant hybrids",
+            "Sow early and scout fields regularly in cool, humid weather"
+        ]
+    },
+    "Corn_Gray Leaf Spot": {
+        "crop": "Corn",
+        "name": "Gray Leaf Spot",
+        "type": "Fungal",
+        "symptoms": [
+            "Narrow, rectangular tan to gray spots running parallel to the leaf veins",
+            "Spots join together and large parts of the leaf dry out"
+        ],
+        "causes": "Fungus (Cercospora zeae-maydis) that survives in old corn residue. Warm, humid weather and dense crops make it worse.",
+        "treatment": [
+            "Apply a recommended foliar fungicide early if the disease is spreading on upper leaves",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Rotate with non-host crops",
+            "Bury or remove old corn residue",
+            "Use resistant hybrids and avoid very dense planting"
+        ]
+    },
+    "Corn_Healthy": {
+        "crop": "Corn",
+        "name": "Healthy",
+        "type": "Healthy",
+        "symptoms": [
+            "No visible disease signs on this leaf"
+        ],
+        "causes": "Not applicable.",
+        "treatment": [
+            "No treatment needed"
+        ],
+        "prevention": [
+            "Keep checking the field regularly",
+            "Use balanced fertilizer and proper irrigation"
+        ]
+    },
+    "Corn_Northern Leaf Blight": {
+        "crop": "Corn",
+        "name": "Northern Leaf Blight",
+        "type": "Fungal",
+        "symptoms": [
+            "Long, cigar-shaped gray-green to tan lesions on the leaves",
+            "Lesions grow and join, and leaves dry out from the lower part of the plant upward"
+        ],
+        "causes": "Fungus (Exserohilum turcicum). It survives in crop residue and spreads in moderate temperatures with long periods of leaf wetness.",
+        "treatment": [
+            "Apply a recommended fungicide if the disease reaches upper leaves before or around flowering",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Plant resistant hybrids",
+            "Rotate crops and manage corn residue"
+        ]
+    },
+    "Cotton_Alternaria Leaf Spot": {
+        "crop": "Cotton",
+        "name": "Alternaria Leaf Spot",
+        "type": "Fungal",
+        "symptoms": [
+            "Small brown to gray circular spots, often with ring-like patterns",
+            "Spots can dry and fall out, and leaves may drop early"
+        ],
+        "causes": "Fungus (Alternaria species). It is worse in warm, humid weather and in plants stressed by poor nutrition, especially low potassium.",
+        "treatment": [
+            "Use a recommended fungicide if the spots are spreading",
+            "Correct nutrient problems, especially potassium"
+        ],
+        "prevention": [
+            "Keep plants well fed and avoid water stress",
+            "Rotate crops and remove old crop residue"
+        ]
+    },
+    "Cotton_Bacterial Blight": {
+        "crop": "Cotton",
+        "name": "Bacterial Blight",
+        "type": "Bacterial",
+        "symptoms": [
+            "Angular, water-soaked spots on leaves that are limited by the veins and turn brown or black",
+            "Dark lesions can appear on stems and bolls, and bolls may rot"
+        ],
+        "causes": "Bacterium (Xanthomonas citri pv. malvacearum). It spreads through infected seed, crop residue, and rain splash.",
+        "treatment": [
+            "There is no complete cure once the plant is infected",
+            "Copper-based sprays may slow the spread, so check the recommendation with your local agriculture office",
+            "Remove and destroy badly infected plants and residue"
+        ],
+        "prevention": [
+            "Use certified disease-free (acid-delinted) seed",
+            "Plant resistant varieties and rotate crops"
+        ]
+    },
+    "Cotton_Fusarium Wilt": {
+        "crop": "Cotton",
+        "name": "Fusarium Wilt",
+        "type": "Fungal",
+        "symptoms": [
+            "Yellowing and wilting of leaves, often starting on one side of the plant",
+            "Stunted growth",
+            "Brown color inside the stem when it is cut open"
+        ],
+        "causes": "Soil-borne fungus (Fusarium oxysporum f. sp. vasinfectum). It is worse in sandy soils and where root-knot nematodes are present.",
+        "treatment": [
+            "There is no effective cure for infected plants",
+            "Remove and destroy infected plants to reduce spread"
+        ],
+        "prevention": [
+            "Plant wilt-resistant varieties",
+            "Control nematodes and rotate with non-host crops",
+            "Keep soil nutrition balanced, especially potassium"
+        ]
+    },
+    "Cotton_Healthy Leaf": {
+        "crop": "Cotton",
+        "name": "Healthy Leaf",
+        "type": "Healthy",
+        "symptoms": [
+            "No visible disease signs on this leaf"
+        ],
+        "causes": "Not applicable.",
+        "treatment": [
+            "No treatment needed"
+        ],
+        "prevention": [
+            "Keep checking the field regularly",
+            "Use balanced fertilizer and proper irrigation"
+        ]
+    },
+    "Cotton_Verticillium Wilt": {
+        "crop": "Cotton",
+        "name": "Verticillium Wilt",
+        "type": "Fungal",
+        "symptoms": [
+            "Yellow patches between the leaf veins, with leaf edges turning brown",
+            "Wilting and early leaf drop",
+            "Dark streaks inside the stem"
+        ],
+        "causes": "Soil-borne fungus (Verticillium dahliae) that can stay in the soil for years. It is more active in cooler weather.",
+        "treatment": [
+            "There is no effective cure for infected plants",
+            "Remove and destroy infected plants and residue"
+        ],
+        "prevention": [
+            "Plant tolerant varieties",
+            "Rotate with cereals or other non-host crops",
+            "Avoid too much nitrogen and over-irrigation"
+        ]
+    },
+    "Wheat_Black Rust": {
+        "crop": "Wheat",
+        "name": "Black Rust (Stem Rust)",
+        "type": "Fungal",
+        "symptoms": [
+            "Dark reddish-brown to black, rough pustules on stems, leaf sheaths and leaves",
+            "Weak stems and shriveled grain in severe cases"
+        ],
+        "causes": "Fungus (Puccinia graminis f. sp. tritici). Spores spread long distances by wind and it develops in warm, humid conditions.",
+        "treatment": [
+            "Apply a recommended fungicide quickly at the first signs",
+            "Report severe outbreaks to your local agriculture office"
+        ],
+        "prevention": [
+            "Plant resistant varieties",
+            "Sow on time and scout fields regularly"
+        ]
+    },
+    "Wheat_Blast": {
+        "crop": "Wheat",
+        "name": "Wheat Blast",
+        "type": "Fungal",
+        "symptoms": [
+            "Part of the head turns white (bleached) above a dark lesion on the stalk of the head",
+            "Grains are shriveled or not formed"
+        ],
+        "causes": "Fungus (Magnaporthe oryzae, Triticum pathotype). It can be carried on seed and is favored by warm, wet weather during heading.",
+        "treatment": [
+            "Fungicide protection works best when applied at heading, as recommended locally",
+            "Report suspected wheat blast to your local agriculture office, because it is a serious disease"
+        ],
+        "prevention": [
+            "Use clean, certified (and treated) seed",
+            "Plant resistant varieties",
+            "Avoid sowing dates that make heading coincide with warm, wet weather"
+        ]
+    },
+    "Wheat_Brown Rust": {
+        "crop": "Wheat",
+        "name": "Brown Rust (Leaf Rust)",
+        "type": "Fungal",
+        "symptoms": [
+            "Small, round orange-brown pustules scattered on the upper leaf surface",
+            "Leaves dry out early in severe cases"
+        ],
+        "causes": "Fungus (Puccinia triticina). Spores spread by wind and it develops in mild temperatures with moisture on the leaves.",
+        "treatment": [
+            "Apply a recommended fungicide early if the disease is spreading",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Plant resistant varieties",
+            "Sow on time and remove volunteer wheat plants"
+        ]
+    },
+    "Wheat_Common Root Rot": {
+        "crop": "Wheat",
+        "name": "Common Root Rot",
+        "type": "Fungal",
+        "symptoms": [
+            "Brown to dark-brown color on the crown, roots and lower stem",
+            "Stunted plants, early ripening and white, empty heads"
+        ],
+        "causes": "Fungus (Bipolaris sorokiniana) that lives in soil, residue and seed. Drought and other stress make it worse.",
+        "treatment": [
+            "There is no effective cure in a standing crop",
+            "Improve irrigation and drainage to reduce plant stress"
+        ],
+        "prevention": [
+            "Use treated, clean seed",
+            "Rotate crops and avoid drought stress",
+            "Keep soil fertility balanced"
+        ]
+    },
+    "Wheat_Fusarium Head Blight": {
+        "crop": "Wheat",
+        "name": "Fusarium Head Blight (Scab)",
+        "type": "Fungal",
+        "symptoms": [
+            "Parts of the head turn white early while the rest stays green",
+            "Pink-orange fungal growth on the head in wet weather",
+            "Shriveled, pale, chalky grain"
+        ],
+        "causes": "Fungus (Fusarium graminearum). Rain or humid weather during flowering spreads it, and old corn residue makes it worse.",
+        "treatment": [
+            "Fungicide works only if applied at flowering, so timing is important. Check the recommendation with your local agriculture office",
+            "Clean out shriveled grain at harvest",
+            "Do not use heavily infected grain for food or animal feed, because it can contain toxins"
+        ],
+        "prevention": [
+            "Avoid planting wheat right after corn",
+            "Use less susceptible varieties and manage crop residue"
+        ]
+    },
+    "Wheat_Healthy": {
+        "crop": "Wheat",
+        "name": "Healthy",
+        "type": "Healthy",
+        "symptoms": [
+            "No visible disease signs on this leaf"
+        ],
+        "causes": "Not applicable.",
+        "treatment": [
+            "No treatment needed"
+        ],
+        "prevention": [
+            "Keep checking the field regularly",
+            "Use balanced fertilizer and proper irrigation"
+        ]
+    },
+    "Wheat_Leaf Blight": {
+        "crop": "Wheat",
+        "name": "Leaf Blight",
+        "type": "Fungal",
+        "symptoms": [
+            "Brown to tan blotches on the leaves that grow and join together",
+            "Leaves dry out early"
+        ],
+        "causes": "Several fungi can cause leaf blight in wheat. It spreads through seed and crop residue and is worse in warm, humid weather.",
+        "treatment": [
+            "Use a recommended foliar fungicide if the disease is moving up to the top leaves",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Use certified, treated seed",
+            "Rotate crops, manage residue and avoid late sowing",
+            "Keep fertilizer balanced"
+        ]
+    },
+    "Wheat_Mildew": {
+        "crop": "Wheat",
+        "name": "Powdery Mildew",
+        "type": "Fungal",
+        "symptoms": [
+            "White to gray powdery growth on the upper leaf surface",
+            "Older patches turn yellow-brown with tiny black dots"
+        ],
+        "causes": "Fungus (Blumeria graminis f. sp. tritici). It is favored by cool, humid, cloudy weather, thick crops and too much nitrogen.",
+        "treatment": [
+            "Apply a recommended fungicide if the disease is spreading to upper leaves",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Plant resistant varieties",
+            "Avoid too much nitrogen and very dense sowing"
+        ]
+    },
+    "Wheat_Septoria": {
+        "crop": "Wheat",
+        "name": "Septoria Leaf Blotch",
+        "type": "Fungal",
+        "symptoms": [
+            "Yellow to brown blotches, usually starting on the lower leaves",
+            "Tiny black dots inside the blotches"
+        ],
+        "causes": "Fungus (Zymoseptoria tritici) that survives on crop residue and spreads by rain splash in cool, wet weather.",
+        "treatment": [
+            "Fungicide is most useful to protect the upper leaves, if recommended locally",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Plant resistant varieties",
+            "Rotate crops and manage residue",
+            "Avoid very early sowing"
+        ]
+    },
+    "Wheat_Smut": {
+        "crop": "Wheat",
+        "name": "Smut",
+        "type": "Fungal",
+        "symptoms": [
+            "Heads filled with black powdery spore masses instead of grain",
+            "Infected heads often come out earlier than healthy ones"
+        ],
+        "causes": "Smut fungi. In loose smut the fungus is carried inside the seed, so it passes from one season to the next.",
+        "treatment": [
+            "There is no cure for infected plants",
+            "Carefully remove infected heads in a bag before the spores spread, and destroy them"
+        ],
+        "prevention": [
+            "Use certified seed and a recommended seed treatment",
+            "Plant resistant varieties"
+        ]
+    },
+    "Wheat_Tan spot": {
+        "crop": "Wheat",
+        "name": "Tan Spot",
+        "type": "Fungal",
+        "symptoms": [
+            "Tan to brown oval spots, often with a yellow border and a dark spot in the center",
+            "Spots join together and the leaf dries out"
+        ],
+        "causes": "Fungus (Pyrenophora tritici-repentis) that survives in wheat residue. It is worse when wheat follows wheat.",
+        "treatment": [
+            "Use a recommended foliar fungicide if the disease is moving up to the top leaves",
+            "Confirm product and dose with your local agriculture office"
+        ],
+        "prevention": [
+            "Rotate crops and avoid wheat after wheat",
+            "Manage crop residue and use certified seed"
+        ]
+    },
+    "Wheat_Yellow Rust": {
+        "crop": "Wheat",
+        "name": "Yellow Rust (Stripe Rust)",
+        "type": "Fungal",
+        "symptoms": [
+            "Yellow-orange powdery pustules in stripes along the leaf veins",
+            "Leaves dry out and yield drops in severe cases"
+        ],
+        "causes": "Fungus (Puccinia striiformis f. sp. tritici). Spores spread quickly by wind and it develops in cool, humid weather.",
+        "treatment": [
+            "Apply a recommended fungicide quickly at the first signs, because it spreads fast",
+            "Report outbreaks to your local agriculture office"
+        ],
+        "prevention": [
+            "Plant resistant varieties",
+            "Avoid late sowing and too much nitrogen",
+            "Scout fields regularly from early growth stages"
+        ]
+    }
+}
