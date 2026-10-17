@@ -49,7 +49,7 @@ export default function DeleteCategoryModal({
 
         {/* Content */}
         <div className="my-4 p-3.5 rounded-2xl bg-red-50/60 border border-red-100 text-xs text-red-800 leading-relaxed">
-          Are you sure you want to delete <strong className="font-bold text-red-950">"{category.name}"</strong>?
+          Are you sure you want to delete <strong className="font-bold text-red-950">&ldquo;{category.name}&rdquo;</strong>?
           Any products classified under this category may become unassigned.
         </div>
 

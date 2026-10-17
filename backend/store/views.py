@@ -6,14 +6,26 @@ from .models import Category
 from .serializers import CategorySerializer
 
 
+class IsSuperAdminUser(permissions.BasePermission):
+    """
+    Permission class that grants access only to superadmin users.
+    """
+    message = "Access denied. Only superadmin is allowed."
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user and request.user.is_authenticated and request.user.is_superuser
+        )
+
+
 class CategoryListCreateView(APIView):
     """Async API for superadmin to list and create categories."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdminUser]
 
     async def get(self, request):
-        if not (request.user.is_superuser or request.user.is_staff):
+        if not (request.user and request.user.is_superuser):
             return Response(
-                {"error": "Only administrators can access categories."},
+                {"error": "Access denied. Only superadmin is allowed."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -36,9 +48,9 @@ class CategoryListCreateView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
     async def post(self, request):
-        if not (request.user.is_superuser or request.user.is_staff):
+        if not (request.user and request.user.is_superuser):
             return Response(
-                {"error": "Only superadmin can create categories."},
+                {"error": "Access denied. Only superadmin is allowed."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -58,12 +70,12 @@ class CategoryListCreateView(APIView):
 
 class CategoryDetailView(APIView):
     """Async API for superadmin to retrieve, update, toggle or delete a category."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdminUser]
 
     async def get(self, request, pk):
-        if not (request.user.is_superuser or request.user.is_staff):
+        if not (request.user and request.user.is_superuser):
             return Response(
-                {"error": "Only administrators can access category details."},
+                {"error": "Access denied. Only superadmin is allowed."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -81,9 +93,9 @@ class CategoryDetailView(APIView):
         return Response(data)
 
     async def patch(self, request, pk):
-        if not (request.user.is_superuser or request.user.is_staff):
+        if not (request.user and request.user.is_superuser):
             return Response(
-                {"error": "Only superadmin can update categories."},
+                {"error": "Access denied. Only superadmin is allowed."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -106,9 +118,9 @@ class CategoryDetailView(APIView):
         return Response(data, status=code)
 
     async def delete(self, request, pk):
-        if not (request.user.is_superuser or request.user.is_staff):
+        if not (request.user and request.user.is_superuser):
             return Response(
-                {"error": "Only superadmin can delete categories."},
+                {"error": "Access denied. Only superadmin is allowed."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 

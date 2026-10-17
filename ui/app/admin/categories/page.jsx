@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ShieldAlert, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/authStore";
+import { AlertCircle } from "lucide-react";
 import { useCategoryStore } from "@/store/categoryStore";
 
 import CategoryHeader from "@/components/admin/categories/CategoryHeader";
@@ -16,7 +13,6 @@ import AddEditCategoryModal from "@/components/admin/categories/AddEditCategoryM
 import DeleteCategoryModal from "@/components/admin/categories/DeleteCategoryModal";
 
 export default function CategoriesPage() {
-  const { user } = useAuthStore();
   const {
     categories,
     isLoading,
@@ -40,18 +36,10 @@ export default function CategoriesPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [isModalSubmitting, setIsModalSubmitting] = useState(false);
 
-  // Superadmin authorization check:
-  // User must be superadmin (is_superuser is true or role is admin without vendor profile)
-  const isSuperAdmin = Boolean(
-    user?.is_superuser || (user?.role === "admin" && !user?.company_name)
-  );
-
-  // Initial data fetch
+  // Initial data fetch - backend validates whether the requesting user is a superadmin
   useEffect(() => {
-    if (isSuperAdmin) {
-      fetchCategories("all", "", false);
-    }
-  }, [fetchCategories, isSuperAdmin]);
+    fetchCategories("all", "", false);
+  }, [fetchCategories]);
 
   // Dynamic Metrics & Stats Calculation
   const stats = useMemo(() => {
@@ -138,30 +126,6 @@ export default function CategoriesPage() {
     setDeletingCategory(null);
   };
 
-  // If user is not superadmin, render access denied shield
-  if (!isSuperAdmin) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 mb-4 shadow-sm border border-amber-200">
-          <ShieldAlert className="h-8 w-8" />
-        </div>
-        <h2 className="text-xl font-bold text-zinc-900 mb-1">
-          Superadmin Access Only
-        </h2>
-        <p className="text-xs text-zinc-500 max-w-md mb-6 leading-relaxed">
-          The Category management module is strictly restricted to platform superadministrators.
-          If you are a vendor, please proceed to your product catalog.
-        </p>
-        <Link href="/admin/dashboard">
-          <Button className="h-10 px-5 rounded-xl bg-zinc-900 text-white text-xs font-semibold gap-2 shadow-sm cursor-pointer hover:bg-zinc-800">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Return to Dashboard</span>
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* 1. Header with Refresh and Add Category action */}
@@ -171,7 +135,7 @@ export default function CategoriesPage() {
         onAddNew={() => setIsAddModalOpen(true)}
       />
 
-      {/* 2. Error Alert (if any) */}
+      {/* 2. Error Alert (Displays backend permission or fetch errors) */}
       {error && (
         <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
@@ -200,6 +164,7 @@ export default function CategoriesPage() {
         setSearchQuery={setSearchQuery}
         viewMode={viewMode}
         setViewMode={setViewMode}
+        totalCount={displayCategories.length}
       />
 
       {/* 5. Content View: Cards View or Table View */}
