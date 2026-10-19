@@ -79,9 +79,9 @@ export default function DiagnosisResult({
 
   const TypeIcon = typeConfig.icon;
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // const handlePrint = () => {
+  //   window.print();
+  // };
 
   const cleanTitle = isHealthy
     ? `${data.crop} — Healthy`
@@ -233,14 +233,14 @@ export default function DiagnosisResult({
       </div>
 
       {/* ───── Stats Row ───── */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {[
-          {
-            icon: Activity,
-            label: "Severity",
-            value: isHealthy ? "None" : (data.severity || "Moderate"),
-            color: "text-canopy",
-          },
+          // {
+          //   icon: Activity,
+          //   label: "Severity",
+          //   value: isHealthy ? "None" : (data.severity || "Moderate"),
+          //   color: "text-canopy",
+          // },
           {
             icon: Leaf,
             label: "Crop",
@@ -507,14 +507,14 @@ export default function DiagnosisResult({
           <span>Analyze Another Image</span>
         </Button>
 
-        <Button
+        {/* <Button
           type="button"
           onClick={handlePrint}
           className="h-11 px-5 rounded-xl bg-canopy hover:bg-canopy/90 text-white text-sm font-semibold gap-2 shadow-sm cursor-pointer flex-1 sm:flex-initial"
         >
           <Download className="h-4 w-4" />
           <span>Download Report</span>
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
