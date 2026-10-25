@@ -9,7 +9,7 @@ export const useCategoryStore = create((set, get) => ({
   error: null,
   statusFilter: "all",
   searchQuery: "",
-  viewMode: "cards", // 'cards' | 'table'
+  viewMode: "table", // 'cards' | 'table'
 
   setViewMode: (mode) => set({ viewMode: mode }),
   setStatusFilter: (status) => set({ statusFilter: status }),
