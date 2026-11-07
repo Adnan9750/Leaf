@@ -1,25 +1,43 @@
 "use client";
 
-import { create } from 'zustand';
-import axiosInstance from '../utils/axiosInstance';
-import { useLoaderStore } from './loaderStore';
+import { create } from "zustand";
+import axiosInstance from "../utils/axiosInstance";
+import { useLoaderStore } from "./loaderStore";
 
-export const useProductStore = create((set, get) => ({
+const parseError = (err, fallback) => {
+  const data = err?.response?.data;
+  if (!data) return err?.message || fallback;
+  if (typeof data === "string") return data;
+  if (data.message) return data.message;
+  if (data.error) return data.error;
+  if (data.detail) return data.detail;
+  if (data.errors && typeof data.errors === "object") {
+    const first = Object.values(data.errors)[0];
+    if (Array.isArray(first)) return first[0];
+    if (typeof first === "string") return first;
+  }
+  return fallback;
+};
+
+export const useProductStore = create((set) => ({
   products: [],
   isLoading: false,
   error: null,
-  // Fetch products list
+
   fetchProducts: async (withGlobalLoader = false) => {
     set({ isLoading: true, error: null });
     if (withGlobalLoader) {
-      useLoaderStore.getState().showLoader('Loading products...');
+      useLoaderStore.getState().showLoader("Loading products...");
     }
     try {
-      const response = await axiosInstance.get('/store/products/');
-      set({ products: response.data, isLoading: false, error: null });
-      return { success: true, data: response.data };
+      const response = await axiosInstance.get("/store/products/");
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data || [];
+      set({ products: data, isLoading: false, error: null });
+      return { success: true, data };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to load products';
+      const errorMessage = parseError(err, "Failed to load products");
       set({ error: errorMessage, isLoading: false });
       return { success: false, error: errorMessage };
     } finally {
@@ -28,20 +46,33 @@ export const useProductStore = create((set, get) => ({
       }
     }
   },
-  // Create a new product
+
   createProduct: async (payload) => {
-    useLoaderStore.getState().showLoader('Creating product...');
+    useLoaderStore.getState().showLoader("Creating product...");
     try {
-      const response = await axiosInstance.post('/store/products/', payload);
-      // Prepend new product to store for immediate UI update
-      set(state => ({ products: [response.data, ...state.products] }));
-      return { success: true, data: response.data };
+      const isFormData =
+        typeof FormData !== "undefined" && payload instanceof FormData;
+      const response = await axiosInstance.post("/store/products/", payload, {
+        headers: isFormData
+          ? { "Content-Type": "multipart/form-data" }
+          : undefined,
+      });
+      const created = response.data?.data ?? response.data;
+      set((state) => ({
+        products: created ? [created, ...state.products] : state.products,
+      }));
+      return { success: true, data: created };
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to create product';
-      return { success: false, error: errorMessage };
+      const errorMessage = parseError(err, "Failed to create product");
+      const fieldErrors =
+        err?.response?.data?.errors && typeof err.response.data.errors === "object"
+          ? err.response.data.errors
+          : null;
+      return { success: false, error: errorMessage, fieldErrors };
     } finally {
       useLoaderStore.getState().hideLoader();
     }
   },
-  reset: () => set({ products: [], error: null, isLoading: false })
+
+  reset: () => set({ products: [], error: null, isLoading: false }),
 }));
