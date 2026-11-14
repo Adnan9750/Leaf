@@ -213,7 +213,10 @@ class Product(models.Model):
 
         # Auto-generate unique SKU if left blank
         if not self.sku:
-            self.sku = f"LF-{uuid.uuid4().hex[:8].upper()}"
+            sku = f"LF-{uuid.uuid4().hex[:8].upper()}"
+            while Product.objects.filter(sku=sku).exclude(pk=self.pk).exists():
+                sku = f"LF-{uuid.uuid4().hex[:8].upper()}"
+            self.sku = sku
 
         super().save(*args, **kwargs)
 

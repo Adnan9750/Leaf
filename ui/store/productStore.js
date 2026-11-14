@@ -50,13 +50,7 @@ export const useProductStore = create((set) => ({
   createProduct: async (payload) => {
     useLoaderStore.getState().showLoader("Creating product...");
     try {
-      const isFormData =
-        typeof FormData !== "undefined" && payload instanceof FormData;
-      const response = await axiosInstance.post("/store/products/", payload, {
-        headers: isFormData
-          ? { "Content-Type": "multipart/form-data" }
-          : undefined,
-      });
+      const response = await axiosInstance.post("/store/products/", payload);
       const created = response.data?.data ?? response.data;
       set((state) => ({
         products: created ? [created, ...state.products] : state.products,
@@ -69,6 +63,45 @@ export const useProductStore = create((set) => ({
           ? err.response.data.errors
           : null;
       return { success: false, error: errorMessage, fieldErrors };
+    } finally {
+      useLoaderStore.getState().hideLoader();
+    }
+  },
+
+  updateProduct: async (id, payload) => {
+    useLoaderStore.getState().showLoader("Saving changes...");
+    try {
+      const response = await axiosInstance.patch(`/store/products/${id}/`, payload);
+      const updated = response.data?.data ?? response.data;
+      set((state) => ({
+        products: state.products.map((p) =>
+          p.id === id ? { ...p, ...updated } : p
+        ),
+      }));
+      return { success: true, data: updated };
+    } catch (err) {
+      const errorMessage = parseError(err, "Failed to update product");
+      const fieldErrors =
+        err?.response?.data?.errors && typeof err.response.data.errors === "object"
+          ? err.response.data.errors
+          : null;
+      return { success: false, error: errorMessage, fieldErrors };
+    } finally {
+      useLoaderStore.getState().hideLoader();
+    }
+  },
+
+  deleteProduct: async (id) => {
+    useLoaderStore.getState().showLoader("Deleting product...");
+    try {
+      await axiosInstance.delete(`/store/products/${id}/`);
+      set((state) => ({
+        products: state.products.filter((p) => p.id !== id),
+      }));
+      return { success: true };
+    } catch (err) {
+      const errorMessage = parseError(err, "Failed to delete product");
+      return { success: false, error: errorMessage };
     } finally {
       useLoaderStore.getState().hideLoader();
     }

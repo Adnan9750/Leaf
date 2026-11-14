@@ -45,8 +45,8 @@ class ProductImageSerializer(serializers.ModelSerializer):
 # Pass context={"request": request} so image URLs are complete.
 # --------------------------------------------------------------------------
 class ProductSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source="category.name", read_only=True)
-    category_slug = serializers.CharField(source="category.slug", read_only=True)
+    category_name = serializers.CharField(source="category.name", read_only=True, default="")
+    category_slug = serializers.CharField(source="category.slug", read_only=True, default="")
     vendor_name = serializers.CharField(source="vendor.company_name", read_only=True, default="Leaf Direct")
 
     images = ProductImageSerializer(many=True, read_only=True)
@@ -126,6 +126,23 @@ class ProductCreateSerializer(serializers.ModelSerializer):
                 {"compare_at_price": "Must be higher than the selling price."}
             )
         return attrs
+
+
+class ProductUpdateSerializer(ProductCreateSerializer):
+    """Partial-update serializer — every field is optional (used with partial=True)."""
+    category_id = serializers.PrimaryKeyRelatedField(
+        source="category",
+        queryset=Category.objects.filter(is_active=True),
+        error_messages={"does_not_exist": "Category not found or not active."},
+        required=False,
+    )
+    # image is optional on update — only replace if a new file is sent
+    image = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta(ProductCreateSerializer.Meta):
+        fields = ProductCreateSerializer.Meta.fields + [
+            "is_active", "is_featured", "blocked_reason",
+        ]
 
 # class ProductSerializer(serializers.ModelSerializer):
 #     """
