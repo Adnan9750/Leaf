@@ -107,5 +107,49 @@ export const useProductStore = create((set) => ({
     }
   },
 
+  // ---------------------------------------------------------------------------
+  // PUBLIC STOREFRONT METHODS (No authentication required)
+  // ---------------------------------------------------------------------------
+  fetchPublicProducts: async (params = {}, withGlobalLoader = false) => {
+    set({ isLoading: true, error: null });
+    if (withGlobalLoader) {
+      useLoaderStore.getState().showLoader("Loading catalog...");
+    }
+    try {
+      const response = await axiosInstance.get("/store/public/products/", { params });
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data?.products || response.data?.data || [];
+      return { success: true, data, count: response.data?.count ?? data.length };
+    } catch (err) {
+      const errorMessage = parseError(err, "Failed to load public products");
+      return { success: false, error: errorMessage };
+    } finally {
+      set({ isLoading: false });
+      if (withGlobalLoader) {
+        useLoaderStore.getState().hideLoader();
+      }
+    }
+  },
+
+  fetchPublicProductDetail: async (slugOrId, withGlobalLoader = false) => {
+    if (withGlobalLoader) {
+      useLoaderStore.getState().showLoader("Loading product details...");
+    }
+    try {
+      const response = await axiosInstance.get(`/store/public/products/${slugOrId}/`);
+      const product = response.data?.product || response.data?.data || null;
+      const related = response.data?.related_products || [];
+      return { success: true, product, related_products: related };
+    } catch (err) {
+      const errorMessage = parseError(err, "Failed to load product details");
+      return { success: false, error: errorMessage };
+    } finally {
+      if (withGlobalLoader) {
+        useLoaderStore.getState().hideLoader();
+      }
+    }
+  },
+
   reset: () => set({ products: [], error: null, isLoading: false }),
 }));

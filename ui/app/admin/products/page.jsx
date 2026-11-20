@@ -375,33 +375,7 @@ export default function ProductsPage() {
               </button>
             ) : null}
 
-            {/* Grid vs Table Layout Toggle */}
-            <div className="flex items-center bg-zinc-100 p-0.5 rounded-xl border border-zinc-200/80">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                title="Grid Cards View"
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === "grid"
-                    ? "bg-white text-zinc-900 shadow-2xs font-bold"
-                    : "text-zinc-400 hover:text-zinc-700"
-                }`}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("table")}
-                title="Table List View"
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === "table"
-                    ? "bg-white text-zinc-900 shadow-2xs font-bold"
-                    : "text-zinc-400 hover:text-zinc-700"
-                }`}
-              >
-                <LayoutList className="h-4 w-4" />
-              </button>
-            </div>
+            
           </div>
         </div>
 
@@ -494,377 +468,214 @@ export default function ProductsPage() {
         </Card>
       ) : null}
 
-      {/* Products Presentation (Grid vs Table) */}
+      {/* Products Presentation: Executive Interactive Workspace Stream (Non-Card) */}
       {processedProducts.length > 0 ? (
-        viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {processedProducts.map((p) => {
-              const isOutOfStock = p.stock === 0 || p.is_out_of_stock;
-              const isLowStock =
-                !isOutOfStock &&
-                (p.is_low_stock || (p.stock != null && Number(p.stock) <= (p.low_stock_threshold ?? 5)));
-              const hasDiscount =
-                p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
+        <div className="bg-white rounded-3xl border border-zinc-200/80 shadow-xs overflow-hidden">
+          {/* Header count bar */}
+          <div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/60 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-zinc-900">Marketplace Catalog Stream</span>
+              <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-full">
+                {processedProducts.length} items
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 font-medium">
+              Click any product row or view button to inspect complete agricultural specifications
+            </p>
+          </div>
 
-              return (
-                <div
-                  key={p.id ?? p.slug ?? p.sku ?? p.name}
-                  className="group relative bg-white rounded-2xl border border-zinc-200/80 hover:border-zinc-300 shadow-xs hover:shadow-xl hover:shadow-zinc-950/[0.04] transition-all duration-300 flex flex-col overflow-hidden"
-                >
-                  {/* Top Image Showcase */}
-                  <div className="relative h-52 bg-gradient-to-b from-zinc-50/80 to-zinc-100/60 flex items-center justify-center overflow-hidden border-b border-zinc-100/80">
-                    {p.image ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 text-zinc-300">
-                        <ImageIcon className="h-10 w-10 stroke-[1.5]" />
-                        <span className="text-[11px] font-medium text-zinc-400">No Image</span>
-                      </div>
-                    )}
+          {/* Responsive Stream Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-200/80 bg-zinc-50/90 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  <th className="py-3.5 pl-6 pr-4">Product</th>
+                  <th className="py-3.5 px-4">Category & Brand</th>
+                  {isSuperAdmin && (
+                    <th className="py-3.5 px-4">Vendor Merchant</th>
+                  )}
+                  <th className="py-3.5 px-4">Selling Price</th>
+                  <th className="py-3.5 px-4">Stock & Health</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 pl-4 pr-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 text-xs text-zinc-700 font-medium">
+                {processedProducts.map((p) => {
+                  const isOutOfStock = p.stock === 0 || p.is_out_of_stock;
+                  const isLowStock =
+                    !isOutOfStock &&
+                    (p.is_low_stock || (p.stock != null && Number(p.stock) <= (p.low_stock_threshold ?? 5)));
+                  const hasDiscount =
+                    p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
 
-                    {/* Smooth Quick-View Overlay on Hover */}
-                    <div className="absolute inset-0 bg-zinc-950/30 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setViewProduct(p)}
-                        className="h-9 px-4 rounded-xl bg-white/95 hover:bg-white text-zinc-900 text-xs font-semibold gap-1.5 shadow-lg border border-zinc-200/80 inline-flex items-center cursor-pointer transition-transform hover:scale-105"
-                      >
-                        <Eye className="h-3.5 w-3.5 text-emerald-600" />
-                        <span>Quick View</span>
-                      </button>
-                    </div>
+                  return (
+                    <tr
+                      key={p.id ?? p.slug ?? p.sku ?? p.name}
+                      className="hover:bg-emerald-50/25 transition-all duration-150 group cursor-pointer"
+                      onClick={() => setViewProduct(p)}
+                    >
+                      {/* Product Thumbnail & Identity */}
+                      <td className="py-4 pl-6 pr-4">
+                        <div className="flex items-center gap-3.5">
+                          <div className="relative h-14 w-14 rounded-2xl bg-gradient-to-br from-zinc-50 to-zinc-100 border border-zinc-200/80 p-1 shrink-0 flex items-center justify-center overflow-hidden group-hover:border-emerald-300 transition-colors">
+                            {p.image ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={p.image}
+                                alt={p.name}
+                                className="h-full w-full object-contain group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <ImageIcon className="h-6 w-6 text-zinc-300" />
+                            )}
+                          </div>
+                          <div className="min-w-0 max-w-sm">
+                            <p
+                              className="font-bold text-zinc-900 group-hover:text-emerald-700 transition-colors truncate text-sm"
+                              title={p.name}
+                            >
+                              {p.name || "Untitled Product"}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap text-[11px] text-zinc-400">
+                              <span className="font-mono text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">
+                                SKU: {p.sku || "N/A"}
+                              </span>
+                              {p.is_organic && (
+                                <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1">
+                                  <Leaf className="h-2.5 w-2.5" /> Organic
+                                </span>
+                              )}
+                              {(p.pack_size || p.unit) && (
+                                <span className="text-zinc-500 font-semibold text-[10px]">
+                                  {p.pack_size ? `${p.pack_size} ` : ""}
+                                  {p.unit ? p.unit.toUpperCase() : ""}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                    {/* Top Floating Glassmorphic Badges */}
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {/* Status Chip */}
-                        <span className="bg-white/90 backdrop-blur-md text-zinc-800 border border-zinc-200/80 text-[10px] font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 shadow-2xs">
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              p.status === "draft" ? "bg-zinc-400" : "bg-emerald-500"
-                            }`}
-                          />
-                          {p.status === "draft" ? "Draft" : "Active"}
-                        </span>
-
-                        {/* Organic Badge */}
-                        {p.is_organic && (
-                          <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                            <Leaf className="h-3 w-3" />
-                            <span>Organic</span>
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Discount Badge */}
-                      {hasDiscount && p.discount_percentage ? (
-                        <span className="bg-rose-50/95 backdrop-blur-md text-rose-700 border border-rose-200/80 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
-                          -{p.discount_percentage}%
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {/* Bottom-left Pack Tag */}
-                    {(p.pack_size || p.unit) && (
-                      <div className="absolute bottom-2.5 left-3 bg-zinc-900/80 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-0.5 rounded-md shadow-xs">
-                        {p.pack_size ? `${p.pack_size} ` : ""}
-                        {p.unit ? p.unit.toUpperCase() : ""}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3.5">
-                    <div className="space-y-2">
-                      {/* Meta header: Category and Vendor */}
-                      <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-zinc-400">
-                        <span className="font-bold text-emerald-700 tracking-wider uppercase text-[10px] truncate max-w-[140px]">
+                      {/* Category & Brand */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className="font-extrabold text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/50 inline-block mb-1">
                           {p.category_name || p.category?.name || "General"}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-zinc-500 text-[11px] truncate max-w-[150px]">
-                          <Store className="h-3 w-3 text-zinc-400 shrink-0" />
-                          <span className="truncate">{p.vendor_name || "Leaf Direct"}</span>
-                        </span>
-                      </div>
-
-                      {/* Product Title */}
-                      <h3
-                        onClick={() => setViewProduct(p)}
-                        className="text-base font-bold text-zinc-900 group-hover:text-emerald-700 transition-colors line-clamp-1 cursor-pointer leading-snug"
-                        title={p.name}
-                      >
-                        {p.name || "Untitled Product"}
-                      </h3>
-
-                      {/* Brand & Technical Specification */}
-                      <div className="text-xs text-zinc-500 flex items-center gap-2 truncate">
-                        {p.brand && (
-                          <span className="font-medium text-zinc-700">{p.brand}</span>
-                        )}
-                        {p.brand && p.active_ingredient && (
-                          <span className="text-zinc-300">&bull;</span>
-                        )}
+                        <div className="text-xs text-zinc-600 font-semibold">
+                          {p.brand || <span className="text-zinc-300">—</span>}
+                        </div>
                         {p.active_ingredient && (
-                          <span className="text-zinc-400 truncate text-[11px]">{p.active_ingredient}</span>
+                          <span className="text-[10px] text-zinc-400 truncate max-w-[140px] block mt-0.5" title={p.active_ingredient}>
+                            {p.active_ingredient}
+                          </span>
                         )}
-                        {!p.brand && !p.active_ingredient && p.sku && (
-                          <span className="text-zinc-400 font-mono text-[10px]">SKU: {p.sku}</span>
-                        )}
-                      </div>
-                    </div>
+                      </td>
 
-                    {/* Price and Stock Status */}
-                    <div className="pt-3 border-t border-zinc-100 flex items-baseline justify-between gap-3">
-                      <div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-extrabold text-zinc-950 font-display tracking-tight">
+                      {/* Vendor Merchant (Superadmin only) */}
+                      {isSuperAdmin && (
+                        <td className="py-4 px-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-950 bg-amber-50/80 border border-amber-200/60 px-2.5 py-1 rounded-xl">
+                            <Store className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                            <span className="truncate max-w-[140px]">{p.vendor_name || "Leaf Direct"}</span>
+                          </span>
+                        </td>
+                      )}
+
+                      {/* Price & Discounts */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-base font-extrabold text-zinc-950 font-display tracking-tight">
                             {fmtPrice(p.price)}
                           </span>
                           {hasDiscount && (
-                            <span className="text-xs text-zinc-400 line-through font-medium">
+                            <span className="text-[11px] text-zinc-400 line-through">
                               {fmtPrice(p.compare_at_price)}
                             </span>
                           )}
                         </div>
-                        {p.cost_price && isSuperAdmin && (
-                          <p className="text-[10px] text-zinc-400 font-medium mt-0.5">
-                            Cost: PKR {Number(p.cost_price).toLocaleString("en-US")}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Clean Status Dot */}
-                      <div className="flex items-center gap-1.5 text-xs font-semibold shrink-0">
-                        <span
-                          className={`h-2 w-2 rounded-full ${
-                            isOutOfStock
-                              ? "bg-red-500"
-                              : isLowStock
-                              ? "bg-amber-500 animate-pulse"
-                              : "bg-emerald-500"
-                          }`}
-                        />
-                        <span
-                          className={
-                            isOutOfStock
-                              ? "text-red-600"
-                              : isLowStock
-                              ? "text-amber-700"
-                              : "text-zinc-600"
-                          }
-                        >
-                          {isOutOfStock ? "Out of Stock" : isLowStock ? `${p.stock} left` : `${p.stock ?? 0} in stock`}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Sleek Action Toolbar: Primary View + Secondary Edit/Delete */}
-                    <div className="flex items-center gap-2 pt-1 border-t border-zinc-100">
-                      <button
-                        type="button"
-                        onClick={() => setViewProduct(p)}
-                        className="flex-1 h-9 px-3.5 rounded-xl bg-zinc-900 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-semibold gap-1.5 inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-                        title="View complete product details"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        <span>View Details</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditProduct(p)}
-                        className="h-9 w-9 rounded-xl border border-zinc-200/90 bg-zinc-50/50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-zinc-600 inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-                        title="Edit product"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteProduct(p)}
-                        className="h-9 w-9 rounded-xl border border-zinc-200/90 bg-zinc-50/50 hover:bg-red-50 hover:text-red-700 hover:border-red-200 text-zinc-600 inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-                        title="Delete product"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          /* ──────── TABLE / LIST VIEW ──────── */
-          <Card className="rounded-3xl border border-zinc-200/80 bg-white shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/80 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                    <th className="py-3.5 pl-6 pr-4">Product</th>
-                    <th className="py-3.5 px-4">Category & Brand</th>
-                    <th className="py-3.5 px-4">Vendor</th>
-                    <th className="py-3.5 px-4">Selling Price</th>
-                    <th className="py-3.5 px-4">Stock Status</th>
-                    <th className="py-3.5 px-4">Listing Status</th>
-                    <th className="py-3.5 pl-4 pr-6 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 text-xs text-zinc-700 font-medium">
-                  {processedProducts.map((p) => {
-                    const isOutOfStock = p.stock === 0 || p.is_out_of_stock;
-                    const isLowStock =
-                      !isOutOfStock &&
-                      (p.is_low_stock || (p.stock != null && Number(p.stock) <= (p.low_stock_threshold ?? 5)));
-                    const hasDiscount =
-                      p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
-
-                    return (
-                      <tr
-                        key={p.id ?? p.slug}
-                        className="hover:bg-zinc-50/70 transition-colors group"
-                      >
-                        {/* Title & Thumbnail */}
-                        <td className="py-3.5 pl-6 pr-4">
-                          <div className="flex items-center gap-3">
-                            <div
-                              onClick={() => setViewProduct(p)}
-                              className="h-12 w-12 rounded-xl bg-zinc-100 border border-zinc-200/80 overflow-hidden shrink-0 flex items-center justify-center cursor-pointer"
-                            >
-                              {p.image ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img
-                                  src={p.image}
-                                  alt={p.name}
-                                  className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                                />
-                              ) : (
-                                <ImageIcon className="h-5 w-5 text-zinc-300" />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p
-                                onClick={() => setViewProduct(p)}
-                                className="font-bold text-zinc-900 group-hover:text-emerald-700 transition-colors cursor-pointer truncate max-w-xs"
-                              >
-                                {p.name || "Untitled"}
-                              </p>
-                              <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-400 font-mono">
-                                <span>SKU: {p.sku || "N/A"}</span>
-                                {p.is_organic && (
-                                  <span className="text-emerald-700 font-sans font-bold bg-emerald-50 px-1.5 py-0.2 rounded text-[10px]">
-                                    Organic
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Category & Brand */}
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-zinc-800 block">
-                            {p.category_name || p.category?.name || "Uncategorized"}
+                        {hasDiscount && p.discount_percentage ? (
+                          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded-md inline-block mt-0.5">
+                            -{p.discount_percentage}% OFF
                           </span>
-                          {p.brand && (
-                            <span className="text-[11px] text-zinc-400 block mt-0.5">
-                              Brand: {p.brand}
-                            </span>
-                          )}
-                        </td>
+                        ) : null}
+                      </td>
 
-                        {/* Vendor */}
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200/70 px-2 py-0.5 rounded-md truncate max-w-[160px]">
-                            <Store className="h-3 w-3 text-amber-700 shrink-0" />
-                            <span className="truncate">{p.vendor_name || "Leaf Direct"}</span>
-                          </span>
-                        </td>
-
-                        {/* Price */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="font-extrabold text-zinc-900">
-                            {fmtPrice(p.price)}
-                          </div>
-                          {hasDiscount && (
-                            <div className="text-[10px] text-zinc-400 line-through">
-                              {fmtPrice(p.compare_at_price)}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Stock */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                      {/* Stock & Health */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div>
                           {isOutOfStock ? (
-                            <span className="rounded-full bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-[11px] font-bold inline-flex items-center gap-1">
-                              <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                            <span className="rounded-full bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 text-[11px] font-bold inline-flex items-center gap-1.5">
+                              <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
                               Out of Stock
                             </span>
                           ) : isLowStock ? (
-                            <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 text-[11px] font-bold inline-flex items-center gap-1">
-                              <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
-                              {p.stock} left
+                            <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 text-[11px] font-bold inline-flex items-center gap-1.5">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-600 animate-pulse" />
+                              Low: {p.stock} units
                             </span>
                           ) : (
-                            <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold inline-flex items-center gap-1">
+                            <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold inline-flex items-center gap-1.5">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
                               {p.stock ?? 0} in stock
                             </span>
                           )}
-                        </td>
+                        </div>
+                      </td>
 
-                        {/* Status */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${
-                              p.status === "draft"
-                                ? "bg-zinc-100 text-zinc-700 border-zinc-200"
-                                : "bg-emerald-50 text-emerald-800 border-emerald-200"
-                            }`}
+                      {/* Listing Status */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                            p.status === "draft"
+                              ? "bg-zinc-100 text-zinc-700 border-zinc-200"
+                              : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                          }`}
+                        >
+                          {p.status === "draft" ? "Draft" : "Published"}
+                        </span>
+                      </td>
+
+                      {/* Dedicated Actions */}
+                      <td
+                        className="py-4 pl-4 pr-6 text-right whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setViewProduct(p)}
+                            title="View Details"
+                            className="h-8.5 px-3 rounded-xl bg-zinc-900 hover:bg-emerald-600 text-white text-xs font-bold gap-1.5 inline-flex items-center justify-center transition-all cursor-pointer shadow-xs"
                           >
-                            {p.status === "draft" ? "Draft" : "Published"}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-3.5 pl-4 pr-6 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => setViewProduct(p)}
-                              title="View Details"
-                              className="h-8 w-8 rounded-xl border border-zinc-200 text-zinc-600 hover:text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 inline-flex items-center justify-center transition-all cursor-pointer"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditProduct(p)}
-                              title="Edit Product"
-                              className="h-8 w-8 rounded-xl border border-zinc-200 text-zinc-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-300 inline-flex items-center justify-center transition-all cursor-pointer"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteProduct(p)}
-                              title="Delete Product"
-                              className="h-8 w-8 rounded-xl border border-zinc-200 text-zinc-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300 inline-flex items-center justify-center transition-all cursor-pointer"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>View</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditProduct(p)}
+                            title="Edit Product"
+                            className="h-8.5 w-8.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-zinc-600 inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteProduct(p)}
+                            title="Delete Product"
+                            className="h-8.5 w-8.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-rose-600 hover:text-white hover:border-rose-600 text-zinc-600 inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : hasActiveFilters ? (
         /* Empty Filter Search State */
         <Card className="rounded-3xl border border-zinc-200/80 bg-white shadow-xs p-12 text-center">

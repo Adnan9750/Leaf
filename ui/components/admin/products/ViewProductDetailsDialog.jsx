@@ -94,8 +94,10 @@ export default function ViewProductDetailsDialog({
                 </span>
               </div>
               <p className="text-xs text-zinc-500 font-medium truncate mt-0.5">
-                {product.category_name || product.category?.name || "Uncategorized"} &bull;{" "}
-                {product.vendor_name || product.vendor?.company_name || "Leaf Direct"}
+                {product.category_name || product.category?.name || "Uncategorized"}
+                {isSuperAdmin && (
+                  <> &bull; {product.vendor_name || product.vendor?.company_name || "Leaf Direct"}</>
+                )}
               </p>
             </div>
           </div>
@@ -304,14 +306,16 @@ export default function ViewProductDetailsDialog({
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200/60">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                    Vendor Partner
-                  </span>
-                  <p className="text-xs font-bold text-amber-900 mt-0.5 truncate">
-                    {product.vendor_name || product.vendor?.company_name || "Leaf Direct"}
-                  </p>
-                </div>
+                {isSuperAdmin && (
+                  <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200/60">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                      Vendor Partner
+                    </span>
+                    <p className="text-xs font-bold text-amber-900 mt-0.5 truncate">
+                      {product.vendor_name || product.vendor?.company_name || "Leaf Direct"}
+                    </p>
+                  </div>
+                )}
 
                 <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200/60">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
