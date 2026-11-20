@@ -486,7 +486,8 @@ async def public_products_view(request):
     try:
         def fetch_public_list():
             qs = (
-                Product.objects.filter(is_active=True, status=Product.Status.PUBLISHED)
+                Product.objects.filter(is_active=True)
+                .exclude(status=Product.Status.ARCHIVED)
                 .select_related("vendor", "category")
                 .prefetch_related("images")
             )
@@ -617,7 +618,8 @@ async def public_product_detail_view(request, slug_or_id):
     try:
         def fetch_detail():
             qs = (
-                Product.objects.filter(is_active=True, status=Product.Status.PUBLISHED)
+                Product.objects.filter(is_active=True)
+                .exclude(status=Product.Status.ARCHIVED)
                 .select_related("vendor", "category")
                 .prefetch_related("images")
             )
@@ -637,9 +639,9 @@ async def public_product_detail_view(request, slug_or_id):
             related_qs = (
                 Product.objects.filter(
                     is_active=True,
-                    status=Product.Status.PUBLISHED,
                     category_id=product.category_id,
                 )
+                .exclude(status=Product.Status.ARCHIVED)
                 .exclude(pk=product.pk)
                 .select_related("vendor", "category")
                 .prefetch_related("images")

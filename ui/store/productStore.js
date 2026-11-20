@@ -21,7 +21,10 @@ const parseError = (err, fallback) => {
 
 export const useProductStore = create((set) => ({
   products: [],
+  publicProducts: [],
+  publicCategories: [],
   isLoading: false,
+  isPublicLoading: false,
   error: null,
 
   fetchProducts: async (withGlobalLoader = false) => {
@@ -111,7 +114,7 @@ export const useProductStore = create((set) => ({
   // PUBLIC STOREFRONT METHODS (No authentication required)
   // ---------------------------------------------------------------------------
   fetchPublicProducts: async (params = {}, withGlobalLoader = false) => {
-    set({ isLoading: true, error: null });
+    set({ isPublicLoading: true, error: null });
     if (withGlobalLoader) {
       useLoaderStore.getState().showLoader("Loading catalog...");
     }
@@ -120,15 +123,34 @@ export const useProductStore = create((set) => ({
       const data = Array.isArray(response.data)
         ? response.data
         : response.data?.products || response.data?.data || [];
-      return { success: true, data, count: response.data?.count ?? data.length };
+      const count = response.data?.count ?? data.length;
+      const pageSize = response.data?.page_size ?? (params.page_size || 12);
+      const totalPages = response.data?.total_pages ?? Math.max(1, Math.ceil(count / pageSize));
+      const page = response.data?.page ?? (params.page || 1);
+      set({ publicProducts: data, isPublicLoading: false, error: null });
+      return { success: true, data, count, totalPages, page, pageSize };
     } catch (err) {
       const errorMessage = parseError(err, "Failed to load public products");
-      return { success: false, error: errorMessage };
+      set({ isPublicLoading: false, error: errorMessage });
+      return { success: false, error: errorMessage, data: [], count: 0, totalPages: 1, page: 1 };
     } finally {
-      set({ isLoading: false });
       if (withGlobalLoader) {
         useLoaderStore.getState().hideLoader();
       }
+    }
+  },
+
+  fetchPublicCategories: async () => {
+    try {
+      const response = await axiosInstance.get("/store/public/categories/");
+      const data =
+        response.data?.categories ||
+        response.data?.data ||
+        (Array.isArray(response.data) ? response.data : []);
+      set({ publicCategories: data });
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, data: [] };
     }
   },
 
