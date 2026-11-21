@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage
+from .models import Category, Product, ProductImage, Order, OrderItem
 
 
 @admin.register(Category)
@@ -40,3 +40,26 @@ class ProductAdmin(admin.ModelAdmin):
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ("product", "is_feature", "created_at")
     list_filter = ("is_feature", "created_at")
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ("product", "quantity", "price", "subtotal")
+    fields = ("product", "quantity", "price", "subtotal")
+
+    def subtotal(self, obj):
+        return obj.subtotal
+    subtotal.short_description = "Subtotal"
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "full_name", "phone", "email",
+        "status", "total_amount", "payment_method", "created_at",
+    )
+    list_filter = ("status", "payment_method", "created_at")
+    search_fields = ("full_name", "email", "phone", "address")
+    readonly_fields = ("created_at", "updated_at", "total_amount", "payment_method")
+    inlines = [OrderItemInline]

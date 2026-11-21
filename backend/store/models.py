@@ -221,6 +221,64 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
 
+class Order(models.Model):
+    class Status(models.TextChoices):
+        PENDING   = "pending",    "Pending"
+        CONFIRMED = "confirmed",  "Confirmed"
+        SHIPPED   = "shipped",    "Shipped"
+        DELIVERED = "delivered",  "Delivered"
+        CANCELLED = "cancelled",  "Cancelled"
+
+    # ── Customer Info ──────────────────────────────────────────────
+    full_name    = models.CharField(max_length=150)
+    email        = models.EmailField()
+    phone        = models.CharField(max_length=20)
+    address      = models.TextField()
+
+    # ── Payment ───────────────────────────────────────────────────
+    payment_method = models.CharField(
+        max_length=20,
+        default="cod",
+        editable=False,
+        help_text="Cash on Delivery — only supported method",
+    )
+
+    # ── Status ────────────────────────────────────────────────────
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+
+    # ── Totals ────────────────────────────────────────────────────
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    notes        = models.TextField(blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Order #{self.pk} — {self.full_name}"
+
+
+class OrderItem(models.Model):
+    order    = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    product  = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="order_items")
+    quantity = models.PositiveIntegerField(default=1)
+    price    = models.DecimalField(max_digits=10, decimal_places=2,
+                                   help_text="Unit price at time of order")
+
+    @property
+    def subtotal(self):
+        return self.price * self.quantity
+
+    def __str__(self):
+        return f"{self.quantity}× {self.product.name} (Order #{self.order_id})"
+
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="products/gallery/")

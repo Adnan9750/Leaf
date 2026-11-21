@@ -17,6 +17,7 @@ import {
     X,
     Sparkles,
     FolderTree,
+    ShoppingBag,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
@@ -60,6 +61,12 @@ export default function AdminSidebar({ isOpen, onClose }) {
             href: "/admin/products",
             icon: Package,
             match: ["/admin/products"],
+        },
+        {
+            name: "Orders",
+            href: "/admin/orders",
+            icon: ShoppingBag,
+            match: ["/admin/orders"],
         },
     ];
 

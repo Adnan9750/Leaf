@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from accounts.models import VendorProfile
-from .models import Category, Product, ProductImage
+from .models import Category, Product, ProductImage, Order, OrderItem
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model used by CRUD APIs."""
@@ -207,3 +207,95 @@ class ProductUpdateSerializer(ProductCreateSerializer):
 #         if value < 0:
 #             raise serializers.ValidationError("Stock cannot be negative.")
 #         return value
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Order Serializers
+# ──────────────────────────────────────────────────────────────────────────────
+
+class OrderItemInputSerializer(serializers.Serializer):
+    """What the client sends per cart line."""
+    product_id = serializers.IntegerField()
+    quantity   = serializers.IntegerField(min_value=1)
+
+
+class OrderCreateSerializer(serializers.Serializer):
+    """Full payload sent when a customer places an order."""
+    full_name = serializers.CharField(max_length=150)
+    email     = serializers.EmailField()
+    phone     = serializers.CharField(max_length=20)
+    address   = serializers.CharField()
+    notes     = serializers.CharField(required=False, allow_blank=True, default="")
+    items     = OrderItemInputSerializer(many=True, min_length=1)
+
+    def validate_phone(self, value):
+        cleaned = value.strip()
+        if not cleaned:
+            raise serializers.ValidationError("Phone number is required.")
+        return cleaned
+
+    def validate_items(self, items):
+        if not items:
+            raise serializers.ValidationError("Order must have at least one item.")
+        return items
+
+
+class OrderItemOutputSerializer(serializers.ModelSerializer):
+    product_name  = serializers.CharField(source="product.name", read_only=True)
+    product_image = serializers.SerializerMethodField()
+    subtotal      = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    vendor_id     = serializers.IntegerField(source="product.vendor_id", read_only=True)
+    vendor_name   = serializers.CharField(source="product.vendor_company", read_only=True)
+    unit          = serializers.CharField(source="product.unit", read_only=True)
+    pack_size     = serializers.CharField(source="product.pack_size", read_only=True)
+    sku           = serializers.CharField(source="product.sku", read_only=True)
+
+    class Meta:
+        model  = OrderItem
+        fields = [
+            "id", "product_id", "product_name", "product_image",
+            "quantity", "price", "subtotal", "vendor_id", "vendor_name",
+            "unit", "pack_size", "sku",
+        ]
+
+    def get_product_image(self, obj):
+        request = self.context.get("request")
+        if obj.product.image:
+            url = obj.product.image.url
+            return request.build_absolute_uri(url) if request else url
+        return None
+
+
+class OrderOutputSerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField()
+    items_count = serializers.SerializerMethodField()
+    vendor_subtotal = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = Order
+        fields = [
+            "id", "full_name", "email", "phone", "address",
+            "payment_method", "status", "total_amount", "notes",
+            "items", "items_count", "vendor_subtotal", "created_at", "updated_at",
+        ]
+        read_only_fields = fields
+
+    def get_items(self, obj):
+        vendor = self.context.get("vendor")
+        qs = obj.items.all()
+        if vendor:
+            qs = [item for item in qs if item.product.vendor_id == vendor.id]
+        return OrderItemOutputSerializer(qs, many=True, context=self.context).data
+
+    def get_items_count(self, obj):
+        vendor = self.context.get("vendor")
+        if vendor:
+            return sum(item.quantity for item in obj.items.all() if item.product.vendor_id == vendor.id)
+        return sum(item.quantity for item in obj.items.all())
+
+    def get_vendor_subtotal(self, obj):
+        vendor = self.context.get("vendor")
+        if vendor:
+            total = sum(item.subtotal for item in obj.items.all() if item.product.vendor_id == vendor.id)
+            return total
+        return obj.total_amount

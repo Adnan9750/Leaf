@@ -130,7 +130,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from accounts.models import VendorProfile
-from .models import Product, ProductImage
+from .models import Product, ProductImage, Order, OrderItem
 from .serializers import (
     MAX_IMAGE_SIZE,
     ProductCreateSerializer,
@@ -138,6 +138,8 @@ from .serializers import (
     ProductOwnerSerializer,
     ProductUpdateSerializer,
     ProductSerializer,
+    OrderCreateSerializer,
+    OrderOutputSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -686,3 +688,290 @@ async def public_categories_view(request):
         )
 
 
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Public Order API  (AllowAny — no login required)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@parser_classes([JSONParser])
+async def place_order_view(request):
+    """
+    POST /api/store/public/orders/
+    Body: { full_name, email, phone, address, notes?, items:[{product_id, quantity}] }
+    Returns the saved order with all items.
+    """
+    ser = OrderCreateSerializer(data=request.data)
+    if not ser.is_valid():
+        return Response({"success": False, "errors": ser.errors}, status=400)
+
+    data = ser.validated_data
+
+    @sync_to_async
+    def _build_and_save():
+        product_ids = [i["product_id"] for i in data["items"]]
+        products = {
+            p.id: p
+            for p in Product.objects.filter(
+                id__in=product_ids,
+                is_active=True,
+            ).exclude(status=Product.Status.ARCHIVED)
+        }
+
+        # Validate every requested product exists & is in stock
+        errors = []
+        for item in data["items"]:
+            pid = item["product_id"]
+            qty = item["quantity"]
+            if pid not in products:
+                errors.append(f"Product #{pid} is not available.")
+            elif products[pid].stock < qty:
+                errors.append(
+                    f"'{products[pid].name}' only has {products[pid].stock} in stock."
+                )
+        if errors:
+            return None, errors
+
+        with transaction.atomic():
+            total = sum(
+                products[i["product_id"]].price * i["quantity"]
+                for i in data["items"]
+            )
+            order = Order.objects.create(
+                full_name=data["full_name"],
+                email=data["email"],
+                phone=data["phone"],
+                address=data["address"],
+                notes=data.get("notes", ""),
+                total_amount=total,
+            )
+            for item in data["items"]:
+                product = products[item["product_id"]]
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=item["quantity"],
+                    price=product.price,
+                )
+                # Deduct stock
+                Product.objects.filter(pk=product.pk).update(
+                    stock=models.F("stock") - item["quantity"]
+                )
+
+        # Refetch with relations and serialize in sync context
+        refetched = Order.objects.prefetch_related(
+            "items__product__vendor", "items__product__category"
+        ).get(pk=order.pk)
+        out = OrderOutputSerializer(refetched, context={"request": request}).data
+        return out, None
+
+    order_data, errors = await _build_and_save()
+    if errors:
+        return Response({"success": False, "errors": errors}, status=400)
+
+    return Response({"success": True, "order": order_data}, status=201)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+async def order_detail_view(request, order_id):
+    """
+    GET /api/store/public/orders/<order_id>/
+    Look up a placed order by ID (for order confirmation page).
+    """
+    @sync_to_async
+    def _get():
+        try:
+            order = Order.objects.prefetch_related(
+                "items__product__vendor", "items__product__category"
+            ).get(pk=order_id)
+            return OrderOutputSerializer(order, context={"request": request}).data, None
+        except Order.DoesNotExist:
+            return None, "Order not found."
+
+    order_data, error = await _get()
+    if error:
+        return Response({"success": False, "message": error}, status=404)
+
+    return Response({"success": True, "order": order_data})
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Admin & Vendor Order Management APIs (IsAuthenticated)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+async def admin_orders_view(request):
+    """
+    GET /api/store/orders/
+    Superadmin: lists all orders with status/search/vendor filters.
+    Vendor: lists ONLY orders containing the authenticated vendor's products.
+    """
+    user = request.user
+    status_param = request.query_params.get("status")
+    search_query = request.query_params.get("search")
+    vendor_param = request.query_params.get("vendor_id")
+
+    @sync_to_async
+    def _fetch():
+        is_admin = bool(user.is_superuser or user.is_staff)
+        vendor = None
+
+        if not is_admin:
+            vendor = VendorProfile.objects.filter(user=user, status="approved").first()
+            if not vendor:
+                return {"error": "Vendor profile not approved or found.", "status": 403}
+
+            qs = Order.objects.filter(items__product__vendor=vendor).distinct()
+        else:
+            qs = Order.objects.all()
+            if vendor_param and vendor_param != "all":
+                qs = qs.filter(items__product__vendor_id=vendor_param).distinct()
+
+        # Status filter
+        if status_param and status_param != "all":
+            qs = qs.filter(status=status_param)
+
+        # Search filter
+        if search_query:
+            clean = search_query.strip()
+            qs = qs.filter(
+                models.Q(full_name__icontains=clean)
+                | models.Q(phone__icontains=clean)
+                | models.Q(email__icontains=clean)
+                | models.Q(id__icontains=clean)
+                | models.Q(address__icontains=clean)
+            )
+
+        qs = qs.prefetch_related(
+            "items__product__vendor",
+            "items__product__category"
+        ).order_by("-created_at")
+
+        # Serializer with vendor context
+        serialized = OrderOutputSerializer(
+            list(qs),
+            many=True,
+            context={"request": request, "vendor": vendor, "is_admin": is_admin}
+        ).data
+
+        # Stats calculation for dashboard
+        all_for_stats = (
+            Order.objects.filter(items__product__vendor=vendor).distinct()
+            if not is_admin
+            else Order.objects.all()
+        )
+        total_orders = all_for_stats.count()
+        pending_orders = all_for_stats.filter(status="pending").count()
+        delivered_orders = all_for_stats.filter(status="delivered").count()
+        confirmed_orders = all_for_stats.filter(status="confirmed").count()
+        shipped_orders = all_for_stats.filter(status="shipped").count()
+        cancelled_orders = all_for_stats.filter(status="cancelled").count()
+
+        # Revenue
+        if not is_admin:
+            from django.db.models import Sum, F
+            vendor_revenue = OrderItem.objects.filter(
+                product__vendor=vendor
+            ).exclude(order__status="cancelled").aggregate(
+                rev=Sum(F("price") * F("quantity"))
+            )["rev"] or 0
+        else:
+            from django.db.models import Sum
+            vendor_revenue = all_for_stats.exclude(status="cancelled").aggregate(
+                rev=Sum("total_amount")
+            )["rev"] or 0
+
+        stats = {
+            "total_orders": total_orders,
+            "pending": pending_orders,
+            "confirmed": confirmed_orders,
+            "shipped": shipped_orders,
+            "delivered": delivered_orders,
+            "cancelled": cancelled_orders,
+            "total_revenue": float(vendor_revenue),
+        }
+
+        return {"orders": serialized, "stats": stats, "is_admin": is_admin, "status": 200}
+
+    result = await _fetch()
+    if "error" in result:
+        return Response({"success": False, "message": result["error"]}, status=result["status"])
+    return Response({
+        "success": True,
+        "orders": result["orders"],
+        "stats": result["stats"],
+        "is_admin": result["is_admin"]
+    })
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+async def admin_order_detail_view(request, order_id):
+    """
+    GET: Retrieve order details (superadmin sees all, vendor sees only if it contains their products).
+    PATCH: Update order status (superadmin or vendor with items in order).
+    """
+    user = request.user
+    is_admin = bool(user.is_superuser or user.is_staff)
+
+    @sync_to_async
+    def _handle_request():
+        vendor = None
+        if not is_admin:
+            vendor = VendorProfile.objects.filter(user=user, status="approved").first()
+            if not vendor:
+                return {"error": "Vendor profile not approved or found.", "code": 403}
+
+            try:
+                order = Order.objects.prefetch_related(
+                    "items__product__vendor", "items__product__category"
+                ).filter(pk=order_id, items__product__vendor=vendor).distinct().first()
+                if not order:
+                    return {"error": "Order not found or not authorized.", "code": 404}
+            except Exception:
+                return {"error": "Order not found.", "code": 404}
+        else:
+            try:
+                order = Order.objects.prefetch_related(
+                    "items__product__vendor", "items__product__category"
+                ).get(pk=order_id)
+            except Order.DoesNotExist:
+                return {"error": "Order not found.", "code": 404}
+
+        if request.method == "GET":
+            out = OrderOutputSerializer(
+                order,
+                context={"request": request, "vendor": vendor, "is_admin": is_admin}
+            )
+            return {"order": out.data, "code": 200}
+
+        elif request.method == "PATCH":
+            new_status = request.data.get("status")
+            if new_status:
+                valid_statuses = [c[0] for c in Order.Status.choices]
+                if new_status not in valid_statuses:
+                    return {
+                        "error": f"Invalid status. Choose from: {', '.join(valid_statuses)}",
+                        "code": 400,
+                    }
+                order.status = new_status
+
+            notes = request.data.get("notes")
+            if notes is not None:
+                order.notes = notes
+
+            order.save()
+            out = OrderOutputSerializer(
+                order,
+                context={"request": request, "vendor": vendor, "is_admin": is_admin}
+            )
+            return {"order": out.data, "code": 200}
+
+    res = await _handle_request()
+    if "error" in res:
+        return Response({"success": False, "message": res["error"]}, status=res["code"])
+    return Response({"success": True, "order": res["order"]})
